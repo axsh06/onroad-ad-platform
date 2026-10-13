@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0a0c0a" />
+    <meta name="description" content="ONROAD — платформа, которая соединяет бренды и автомобили для заметной городской рекламы." />
+    <link rel="icon" type="image/svg+xml" href="./public/favicon.svg" />
+    <title>ONROAD — бренды, которые едут по городу</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="noise" aria-hidden="true"></div>
+    <header class="site-header">
+      <a class="brand" href="#top" aria-label="ONROAD — на главную">
+        <span class="brand-mark"><i></i><i></i><i></i></span>
+        <span>ON<span class="brand-light">ROAD</span></span>
+      </a>
+      <nav class="main-nav" id="main-nav" aria-label="Основная навигация">
+        <a href="#how" data-i18n="navHow">Как это работает</a>
+        <a href="./cars.html" data-i18n="navCars">Автомобили</a>
+        <a href="./campaign.html" data-i18n="navPlanner">Калькулятор</a>
+        <a href="#for-brands" data-i18n="navBrands">Для брендов</a>
+      </nav>
+      <div class="header-actions">
+        <button class="language-button" id="language-toggle" type="button" aria-label="Switch language">RU <span>·</span> KZ</button>
+        <button class="button button-small button-outline" data-open-form="driver" data-i18n="navCta">Подключить авто <span aria-hidden="true">↗</span></button>
+        <button class="menu-toggle" id="menu-toggle" aria-label="Открыть меню" aria-expanded="false"><span></span><span></span></button>
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="hero section-shell">
+        <div class="hero-copy">
+          <div class="eyebrow"><span class="live-dot"></span><span data-i18n="heroEyebrow">Новая городская медиа-сеть</span></div>
+          <h1 data-i18n="heroTitle">Бренды,<br />которые <em>едут</em><br />по городу.</h1>
+          <p class="hero-description" data-i18n="heroDesc">Соединяем компании с владельцами красивых автомобилей. Ваш бренд становится частью городского движения.</p>
+          <div class="hero-actions">
+            <button class="button button-primary" data-open-form="brand"><span data-i18n="heroPrimary">Запустить кампанию</span><span class="arrow">↗</span></button>
+            <a class="button button-quiet" href="#how"><span data-i18n="heroSecondary">Узнать больше</span><span class="down-arrow">↓</span></a>
+          </div>
+          <div class="hero-proof"><div class="avatar-stack"><span>А</span><span>М</span><span>Д</span><b>+</b></div><p><strong data-i18n="heroProofStrong">Движение уже начинается</strong><br /><span data-i18n="heroProofSmall">Оставьте заявку — подберём формат кампании</span></p></div>
+        </div>
+        <div class="hero-visual">
+          <div class="hero-image"></div>
+          <div class="image-shade"></div>
+          <div class="hero-index"><span>01</span><span class="index-line"></span><span>03</span></div>
+          <div class="hero-caption"><span class="caption-mark">✳</span><span data-i18n="heroCaption">ГОРОД — ТВОЯ МЕДИАСРЕДА</span></div>
+          <div class="floating-card"><span class="floating-label" data-i18n="floatingLabel">ФОРМАТ РАЗМЕЩЕНИЯ</span><div class="floating-content"><span class="mini-car-icon">↗</span><div><strong data-i18n="floatingTitle">На кузове автомобиля</strong><small data-i18n="floatingSub">Заметно. Естественно. В движении.</small></div></div><span class="floating-number">01 / 05</span></div>
+        </div>
+        <div class="hero-scroll"><span class="scroll-line"></span><span data-i18n="scrollText">ПРОКРУТИТЕ, ЧТОБЫ УЗНАТЬ</span></div>
+      </section>
+
+      <section class="ticker" aria-label="Преимущества"><div class="ticker-track">
+        <span data-i18n="ticker1">ГОРОДСКОЙ ОХВАТ</span><b>✳</b><span data-i18n="ticker2">ПРОВЕРЕННЫЕ АВТОМОБИЛИ</span><b>✳</b><span data-i18n="ticker3">ПОНЯТНЫЕ КАМПАНИИ</span><b>✳</b><span data-i18n="ticker4">ДОПОЛНИТЕЛЬНЫЙ ДОХОД</span><b>✳</b><span data-i18n="ticker1">ГОРОДСКОЙ ОХВАТ</span><b>✳</b><span data-i18n="ticker2">ПРОВЕРЕННЫЕ АВТОМОБИЛИ</span><b>✳</b>
+      </div></section>
+
+      <section class="intro section-shell" id="how">
+        <div class="section-kicker"><span>01</span><span class="kicker-rule"></span><span data-i18n="introKicker">ПЛАТФОРМА</span></div>
+        <div class="intro-grid"><h2 data-i18n="introTitle">Обычные поездки.<br /><span>Необычный охват.</span></h2><div class="intro-copy"><p data-i18n="introDesc">Каждый день тысячи автомобилей движутся по городу. ONROAD превращает это движение в понятный рекламный формат — и даёт владельцам авто возможность зарабатывать на привычных поездках.</p><a href="#steps" class="text-link"><span data-i18n="introLink">Посмотреть, как это работает</span><span>↘</span></a></div></div>
+        <div class="stats-row"><div class="stat"><strong>01<span>—</span>05</strong><small data-i18n="stat1">ЗОН размещения<br />на автомобиле</small></div><div class="stat"><strong>100<span>%</span></strong><small data-i18n="stat2">ПРОЗРАЧНЫЕ<br />условия кампании</small></div><div class="stat"><strong>∞</strong><small data-i18n="stat3">ГОРОДСКИХ<br />маршрутов</small></div><div class="stats-note"><span class="stats-spark">✳</span><p data-i18n="statsNote">Небольшой формат.<br />Большое движение.</p></div></div>
+      </section>
+
+      <section class="steps-section" id="steps"><div class="section-shell">
+        <div class="section-heading"><div class="section-kicker"><span>02</span><span class="kicker-rule"></span><span data-i18n="stepsKicker">ПРОСТОЕ ПОДКЛЮЧЕНИЕ</span></div><h2 data-i18n="stepsTitle">От заявки<br />до <span>первого маршрута.</span></h2><p data-i18n="stepsSub">Без сложных схем. Всё по шагам и с понятными условиями.</p></div>
+        <div class="steps-grid">
+          <article class="step-card"><span class="step-number">01</span><div class="step-icon icon-car"><span></span></div><h3 data-i18n="step1Title">Добавьте автомобиль</h3><p data-i18n="step1Desc">Расскажите о машине, городе и обычных маршрутах. Мы проверим заявку и свяжемся с вами.</p><span class="step-foot" data-i18n="step1Foot">ДЛЯ ВЛАДЕЛЬЦЕВ АВТО</span></article>
+          <article class="step-card"><span class="step-number">02</span><div class="step-icon icon-target">◎</div><h3 data-i18n="step2Title">Выберите кампанию</h3><p data-i18n="step2Desc">Согласуйте бренд, место размещения, срок и вознаграждение до начала кампании.</p><span class="step-foot" data-i18n="step2Foot">ПОНЯТНЫЕ УСЛОВИЯ</span></article>
+          <article class="step-card"><span class="step-number">03</span><div class="step-icon icon-route">↗</div><h3 data-i18n="step3Title">Ездите как обычно</h3><p data-i18n="step3Desc">После согласования макета разместите рекламу и продолжайте свои привычные поездки.</p><span class="step-foot" data-i18n="step3Foot">ВАШ ОБЫЧНЫЙ РИТМ</span></article>
+          <article class="step-card step-card-accent"><span class="step-number">04</span><div class="step-icon icon-income">₸</div><h3 data-i18n="step4Title">Получайте выплату</h3><p data-i18n="step4Desc">Вознаграждение и даты выплат фиксируются в условиях конкретной кампании.</p><span class="step-foot" data-i18n="step4Foot">ДОПОЛНИТЕЛЬНЫЙ ДОХОД</span></article>
+        </div>
+      </div></section>
+
+      <section class="inventory section-shell" id="cars">
+        <div class="inventory-top"><div><div class="section-kicker"><span>03</span><span class="kicker-rule"></span><span data-i18n="inventoryKicker">ПОДБОРКА ONROAD</span></div><h2 data-i18n="inventoryTitle">Автомобили,<br /><span>которые замечают.</span></h2></div><div class="inventory-side"><p data-i18n="inventoryDesc">Каждая машина проходит проверку. Для кампании учитываем город, маршруты, внешний вид и подходящие зоны размещения.</p><div class="inventory-actions"><button class="button button-outline" data-open-form="driver"><span data-i18n="inventoryCta">Предложить свой автомобиль</span><span class="arrow">↗</span></button><a class="button button-quiet" href="./cars.html"><span data-i18n="catalogCta">Открыть каталог</span><span class="arrow">↗</span></a></div></div></div>
+        <div class="car-grid">
+          <article class="car-card car-card-large"><a class="car-photo car-photo-one" href="./cars.html" aria-label="Открыть каталог автомобилей"><span class="car-tag" data-i18n="carTag1">ГОРОДСКОЙ ФОРМАТ</span></a><div class="car-meta"><div><h3 data-i18n="sedanName">Комфортный седан</h3><p>2022 <span>·</span> Алматы</p></div><div class="car-status"><i></i><span data-i18n="available">Доступен</span></div></div><div class="car-footer"><span data-i18n="zonesAvailable">ЗОНЫ РАЗМЕЩЕНИЯ</span><div class="zone-dots"><i></i><i></i><i></i><i></i><i></i></div><span>05</span></div></article>
+          <article class="car-card"><a class="car-photo car-photo-two" href="./cars.html" aria-label="Открыть каталог автомобилей"><span class="car-tag" data-i18n="carTag2">ПРЕМИУМ</span></a><div class="car-meta"><div><h3 data-i18n="sportName">Спорт-седан</h3><p>2021 <span>·</span> Алматы</p></div><div class="car-status"><i></i><span data-i18n="available">Доступен</span></div></div><div class="car-footer"><span data-i18n="zonesAvailable">ЗОНЫ РАЗМЕЩЕНИЯ</span><div class="zone-dots"><i></i><i></i><i></i><i></i><i class="off"></i></div><span>04</span></div></article>
+          <article class="car-card"><a class="car-photo car-photo-three" href="./cars.html" aria-label="Открыть каталог автомобилей"><span class="car-tag" data-i18n="carTag3">ГОРОДСКОЙ ФОРМАТ</span></a><div class="car-meta"><div><h3 data-i18n="suvName">Городской кроссовер</h3><p>2023 <span>·</span> Алматы</p></div><div class="car-status"><i></i><span data-i18n="available">Доступен</span></div></div><div class="car-footer"><span data-i18n="zonesAvailable">ЗОНЫ РАЗМЕЩЕНИЯ</span><div class="zone-dots"><i></i><i></i><i></i><i class="off"></i><i class="off"></i></div><span>03</span></div></article>
+        </div>
+        <p class="sample-note" data-i18n="sampleNote">Примеры для демонстрации формата. Состав и доступность автомобилей уточняются при запуске кампании.</p>
+      </section>
+
+      <section class="zones-section"><div class="section-shell zones-layout"><div class="zones-copy"><div class="section-kicker"><span>04</span><span class="kicker-rule"></span><span data-i18n="zonesKicker">ЗОНЫ РАЗМЕЩЕНИЯ</span></div><h2 data-i18n="zonesTitle">Пять зон.<br /><span>Выберите свою.</span></h2><p data-i18n="zonesDesc">Нажмите на номер на фотографии или выберите вариант ниже. Покажем, где может располагаться рекламный макет. Финальное место согласуется с владельцем автомобиля.</p><button class="button button-primary" data-open-form="brand"><span data-i18n="zonesCta">Обсудить размещение</span><span class="arrow">↗</span></button></div><div class="zones-visual"><div class="zone-photo-wrap"><img class="zone-photo" src="./public/car-sedan.jpg" alt="Серебристый седан сбоку, зоны размещения отмечены номерами" /><button class="zone-marker marker-1" data-zone="0" aria-label="Передняя дверь" aria-pressed="true">01</button><button class="zone-marker marker-2" data-zone="1" aria-label="Задняя дверь" aria-pressed="false">02</button><button class="zone-marker marker-3" data-zone="2" aria-label="Боковая панель" aria-pressed="false">03</button><button class="zone-marker marker-4" data-zone="3" aria-label="Капот" aria-pressed="false">04</button><button class="zone-marker marker-5" data-zone="4" aria-label="Багажник" aria-pressed="false">05</button><div class="selected-zone"><span class="selected-zone-number">01</span><div><small data-i18n="selectedPlacement">ВЫБРАННОЕ МЕСТО</small><strong id="selected-zone-name" data-i18n="zone1">Передняя дверь</strong></div></div></div><div class="zone-selector" role="group" aria-label="Выберите зону размещения"><button class="zone-option active" data-zone="0"><b>01</b><span data-i18n="zone1">Передняя дверь</span></button><button class="zone-option" data-zone="1"><b>02</b><span data-i18n="zone2">Задняя дверь</span></button><button class="zone-option" data-zone="2"><b>03</b><span data-i18n="zone3">Боковая панель</span></button><button class="zone-option" data-zone="3"><b>04</b><span data-i18n="zone4">Капот</span></button><button class="zone-option" data-zone="4"><b>05</b><span data-i18n="zone5">Багажник</span></button></div><span class="diagram-note" data-i18n="diagramNote">ПРИМЕР РАЗМЕЩЕНИЯ · МАКЕТ СОГЛАСУЕТСЯ ОТДЕЛЬНО</span></div></div></section>
+
+      <section class="brands-section section-shell" id="for-brands"><div class="brands-panel"><div class="brands-bg-mark">ON</div><div class="brands-content"><div class="section-kicker"><span>05</span><span class="kicker-rule"></span><span data-i18n="brandsKicker">ДЛЯ КОМПАНИЙ</span></div><h2 data-i18n="brandsTitle">Ваш бренд<br />в движении.</h2><p data-i18n="brandsDesc">Расскажите, кого хотите охватить и в каком городе. Мы подберём автомобили и предложим формат размещения под вашу задачу.</p><button class="button button-primary" data-open-form="brand"><span data-i18n="brandsCta">Оставить заявку на кампанию</span><span class="arrow">↗</span></button><div class="brand-benefits"><span><i>✓</i><span data-i18n="benefit1">Подбор автомобилей</span></span><span><i>✓</i><span data-i18n="benefit2">Согласование макета</span></span><span><i>✓</i><span data-i18n="benefit3">Подтверждение размещения</span></span></div></div><div class="brands-image"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="orbit orbit-three"></div><div class="brands-image-label"><span class="live-dot"></span><span data-i18n="brandsImageLabel">МЕДИА СЕТЬ ГОРОДА</span></div><div class="brand-stat-card"><span data-i18n="brandStatLabel">КАМПАНИЯ</span><strong>ON<span>_</span>THE<br />MOVE</strong><small>ALMATY · KZ</small></div></div></div></section>
+
+      <section class="drivers-cta section-shell"><div><span class="section-kicker-simple" data-i18n="driversKicker">ДЛЯ ВЛАДЕЛЬЦЕВ АВТО</span><h2 data-i18n="driversTitle">Пусть ваши<br />маршруты <em>работают.</em></h2></div><div class="drivers-cta-side"><p data-i18n="driversDesc">Поделитесь информацией об автомобиле — мы расскажем, какие кампании могут подойти.</p><button class="button button-dark" data-open-form="driver"><span data-i18n="driversCta">Добавить автомобиль</span><span class="arrow">↗</span></button></div><div class="drivers-star">✳</div></section>
+
+      <section class="faq-section section-shell"><div class="section-kicker"><span>06</span><span class="kicker-rule"></span><span data-i18n="faqKicker">ОТВЕТЫ</span></div><div class="faq-layout"><h2 data-i18n="faqTitle">Частые<br /><span>вопросы.</span></h2><div class="faq-list"><details><summary data-i18n="faqQ1">Нужно ли менять привычные маршруты?<span>＋</span></summary><p data-i18n="faqA1">Нет. Предполагается, что водитель продолжает ездить как обычно. Условия конкретной кампании согласуются заранее.</p></details><details><summary data-i18n="faqQ2">Как определяется вознаграждение?<span>＋</span></summary><p data-i18n="faqA2">Сумма зависит от автомобиля, зоны размещения, срока и условий кампании. Размер и даты выплат фиксируются до её начала.</p></details><details><summary data-i18n="faqQ3">Кто подготавливает наклейку?<span>＋</span></summary><p data-i18n="faqA3">Производство, установка и снятие обсуждаются отдельно для каждой кампании и указываются в её условиях.</p></details><details><summary data-i18n="faqQ4">Можно ли выбрать конкретный автомобиль?<span>＋</span></summary><p data-i18n="faqA4">Да. После заявки подберём варианты по городу, модели, маршрутам и доступным зонам размещения.</p></details></div></div></section>
+
+      <section class="final-cta"><div class="section-shell final-cta-inner"><span class="final-spark">✳</span><div><span class="section-kicker-simple" data-i18n="finalKicker">ГОРОД УЖЕ ДВИЖЕТСЯ</span><h2 data-i18n="finalTitle">Ваш следующий<br />шаг — <em>на ONROAD.</em></h2></div><div class="final-actions"><button class="button button-primary" data-open-form="brand"><span data-i18n="finalBrand">Я представляю бренд</span><span class="arrow">↗</span></button><button class="button button-outline-light" data-open-form="driver"><span data-i18n="finalDriver">У меня есть автомобиль</span><span class="arrow">↗</span></button></div></div></section>
+    </main>
+
+    <footer class="site-footer"><div class="section-shell footer-top"><a class="brand footer-brand" href="#top"><span class="brand-mark"><i></i><i></i><i></i></span><span>ON<span class="brand-light">ROAD</span></span></a><p data-i18n="footerLine">Город едет. Бренд видят.</p><a class="back-top" href="#top"><span data-i18n="backTop">НАВЕРХ</span><span>↑</span></a></div><div class="section-shell footer-bottom"><span>© ONROAD 2026</span><span data-i18n="footerNote">Концепт платформы · Алматы, Казахстан</span><span class="footer-social">INSTAGRAM <span>↗</span></span></div></footer>
+
+    <div class="modal" id="lead-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modal-title"><div class="modal-backdrop" data-close-modal></div><div class="modal-panel"><button class="modal-close" data-close-modal aria-label="Закрыть">×</button><div class="modal-kicker"><span class="live-dot"></span><span data-i18n="modalKicker">ДАВАЙТЕ НАЧНЁМ</span></div><h2 id="modal-title"></h2><p class="modal-intro" id="modal-intro"></p><form id="lead-form"><input type="hidden" id="lead-type" name="type" /><div id="dynamic-fields"></div><label class="consent-row"><input type="checkbox" name="consent" required /><span data-i18n="consentText">Я согласен(на) на обработку данных для связи по этой заявке.</span></label><p class="demo-note" data-i18n="demoNote">Демонстрационная версия: форма пока не отправляет заявку на сервер.</p><button class="button button-primary modal-submit" type="submit"><span data-i18n="submitLabel">Отправить заявку</span><span class="arrow">↗</span></button></form><div class="form-success" id="form-success" hidden><span class="success-mark">✓</span><h3 data-i18n="successTitle">Спасибо!</h3><p data-i18n="successText">Форма сработала в режиме просмотра. Подключение реального приёма заявок — следующий этап.</p><button class="button button-outline" data-close-modal data-i18n="successClose">Понятно</button></div></div></div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="./app.js" defer></script>
+  </body>
+</html>

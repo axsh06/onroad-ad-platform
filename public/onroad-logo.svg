@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="252" height="56" viewBox="0 0 252 56" role="img" aria-labelledby="title">
+  <title id="title">ONROAD</title>
+  <g fill="none" stroke="#c5ff50" stroke-linecap="round" stroke-width="7">
+    <path d="M13 39 22 17"/><path d="M27 39 36 12"/><path d="M41 39 50 7"/>
+  </g>
+  <text x="66" y="39" fill="#f5f6ef" font-family="Arial,sans-serif" font-size="31" font-weight="700" letter-spacing="-1">ON<tspan fill="#aeb2a5" font-weight="400">ROAD</tspan></text>
+</svg>

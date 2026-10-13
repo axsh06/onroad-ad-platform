@@ -1,0 +1,286 @@
+// BrandMyCar — PostgreSQL Schema via Prisma
+// ============================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────
+
+enum Role {
+  SELLER
+  BUYER
+  ADMIN
+}
+
+enum CarStatus {
+  PENDING     // Ожидает модерации
+  APPROVED    // Одобрена
+  REJECTED    // Отклонена
+}
+
+enum CarClass {
+  SPORT       // Спортивный
+  PREMIUM     // Премиальный
+  LUXURY      // Люксовый
+  SUV         // Внедорожник
+  SUPERCAR    // Суперкар
+}
+
+enum SlotType {
+  HOOD              // Капот
+  FRONT_DOORS       // Передние двери
+  REAR_DOORS        // Задние двери
+  FENDERS           // Крылья
+  REAR_WINDOW_BUMPER // Заднее стекло / Бампер
+}
+
+enum BookingStatus {
+  PENDING     // Ожидает оплаты
+  CONFIRMED   // Подтверждено (после оплаты)
+  APPROVED    // Макет согласован администратором
+  ACTIVE      // Оклейка произведена, реклама активна
+  COMPLETED   // Кампания завершена
+  CANCELLED   // Отменено
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  CARD        // Банковская карта
+  KASPI_PAY   // Kaspi QR/Push
+}
+
+enum AdDuration {
+  ONE_WEEK    // 1 неделя
+  ONE_MONTH   // 1 месяц
+}
+
+// ─────────────────────────────────────────────
+// USERS
+// ─────────────────────────────────────────────
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  emailVerified DateTime?
+  phone         String?   @unique
+  name          String
+  companyName   String?
+  privacyConsentAt DateTime?
+  privacyConsentVersion String?
+  avatarUrl     String?
+  role          Role      @default(BUYER)
+  passwordHash  String?
+
+  // Seller-specific fields
+  sellerProfile SellerProfile?
+
+  // Relations
+  cars          Car[]
+  bookingsAsBuyer Booking[] @relation("BuyerBookings")
+  payments      Payment[]
+  sessions      Session[]
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("users")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model SellerProfile {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  iin             String?  // ИИН (Казахстан)
+  bankAccount     String?  // Реквизиты для выплат
+  totalEarnings   Decimal  @default(0) @db.Decimal(12, 2)
+  pendingPayout   Decimal  @default(0) @db.Decimal(12, 2)
+  completedPayout Decimal  @default(0) @db.Decimal(12, 2)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("seller_profiles")
+}
+
+// ─────────────────────────────────────────────
+// CARS
+// ─────────────────────────────────────────────
+
+model Car {
+  id          String    @id @default(cuid())
+  ownerId     String
+  owner       User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  make        String    // Марка (BMW, Mercedes...)
+  model       String    // Модель (M5, G63...)
+  year        Int       // Год выпуска
+  class       CarClass
+  color       String
+  plateNumber String?   // Гос. номер (скрыт до одобрения)
+  city        String    // Город
+  districts   String[]  // Районы поездок (массив строк)
+
+  // Media
+  photoUrls       String[]  // Фотографии авто
+  documentUrls    String[]  // Документы (тех. паспорт и т.д.)
+
+  // Moderation
+  status          CarStatus @default(PENDING)
+  moderationNote  String?   // Комментарий администратора
+
+  // Stats (обновляются через cron / триггеры)
+  monthlyReach    Int       @default(0)  // Примерный охват/месяц
+  weeklyKm        Int       @default(0)  // Пробег в неделю
+
+  adSlots         AdSlot[]
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@map("cars")
+}
+
+// ─────────────────────────────────────────────
+// AD SLOTS — 5 фиксированных слотов на авто
+// ─────────────────────────────────────────────
+
+model AdSlot {
+  id          String    @id @default(cuid())
+  carId       String
+  car         Car       @relation(fields: [carId], references: [id], onDelete: Cascade)
+
+  slotType    SlotType
+  label       String    // Читаемое название
+  description String?   // Описание зоны
+
+  // Цены
+  priceWeekly  Decimal  @db.Decimal(10, 2) // Цена за неделю (KZT)
+  priceMonthly Decimal  @db.Decimal(10, 2) // Цена за месяц (KZT)
+
+  isAvailable  Boolean  @default(true)
+
+  bookings     Booking[]
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Один слот одного типа на авто
+  @@unique([carId, slotType])
+  @@map("ad_slots")
+}
+
+// ─────────────────────────────────────────────
+// CAMPAIGNS — рекламные кампании Buyer'а
+// ─────────────────────────────────────────────
+
+model Campaign {
+  id           String    @id @default(cuid())
+  buyerId      String
+  name         String
+  brandName    String
+  logoUrl      String?   // Загруженный логотип
+  websiteUrl   String?
+
+  bookings     Booking[]
+
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@map("campaigns")
+}
+
+// ─────────────────────────────────────────────
+// BOOKINGS — бронирования слотов
+// ─────────────────────────────────────────────
+
+model Booking {
+  id           String        @id @default(cuid())
+
+  // Участники
+  buyerId      String
+  buyer        User          @relation("BuyerBookings", fields: [buyerId], references: [id])
+  slotId       String
+  slot         AdSlot        @relation(fields: [slotId], references: [id])
+  campaignId   String?
+  campaign     Campaign?     @relation(fields: [campaignId], references: [id])
+
+  // Параметры размещения
+  duration     AdDuration
+  startDate    DateTime
+  endDate      DateTime
+
+  // Макет (результат Canvas конфигуратора)
+  mockupData   Json?         // Fabric.js JSON состояние канваса
+  mockupUrl    String?       // Финальный PNG превью
+
+  // Финансы
+  totalAmount   Decimal      @db.Decimal(10, 2)
+  sellerAmount  Decimal      @db.Decimal(10, 2)  // 60%
+  platformFee   Decimal      @db.Decimal(10, 2)  // 40%
+
+  // Статус
+  status        BookingStatus @default(PENDING)
+  adminNote     String?       // Комментарий администратора к макету
+
+  payment       Payment?
+
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@map("bookings")
+}
+
+// ─────────────────────────────────────────────
+// PAYMENTS — транзакции
+// ─────────────────────────────────────────────
+
+model Payment {
+  id              String        @id @default(cuid())
+  bookingId       String        @unique
+  booking         Booking       @relation(fields: [bookingId], references: [id])
+  userId          String
+  user            User          @relation(fields: [userId], references: [id])
+
+  amount          Decimal       @db.Decimal(10, 2)
+  currency        String        @default("KZT")
+  method          PaymentMethod
+  status          PaymentStatus @default(PENDING)
+
+  // Stripe / Kaspi Pay
+  externalId      String?       // ID транзакции в платежной системе
+  kaspiOrderId    String?       // Kaspi Pay Order ID
+  kaspiQrToken    String?       // Kaspi Pay QR токен
+
+  paidAt          DateTime?
+  failureReason   String?
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@map("payments")
+}
