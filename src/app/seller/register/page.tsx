@@ -5,6 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { signIn } from 'next-auth/react'
+import { preparePhoto } from '@/lib/client/prepare-photo'
 import { ArrowLeft, ArrowRight, Car, CheckCircle2, ImagePlus, Loader2 } from 'lucide-react'
 
 const SLOT_OPTIONS = [
@@ -31,6 +32,9 @@ export default function SellerRegisterPage() {
     setBusy(true)
     setError('')
     try {
+      if (!files.length) throw new Error('Добавьте хотя бы одну фотографию.')
+      const preparedPhotos = []
+      for (const file of files) preparedPhotos.push(await preparePhoto(file))
       const registration = await fetch('/api/auth/register', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: form.name, email: form.email, password: form.password, phone: form.phone, role: 'SELLER', consent: true }),
@@ -43,9 +47,9 @@ export default function SellerRegisterPage() {
       if (login?.error) throw new Error('Аккаунт создан, но войти не получилось. Войдите через страницу входа и повторите отправку автомобиля.')
 
       const photoUrls: string[] = []
-      for (const file of files) {
+      for (const file of preparedPhotos) {
         const data = new FormData()
-        data.append('file', file)
+        data.append('file', file, 'car.jpg')
         const response = await fetch('/api/uploads', { method: 'POST', body: data })
         const result = await response.json().catch(() => ({}))
         if (!response.ok) throw new Error(result.error || 'Не удалось загрузить фотографию.')

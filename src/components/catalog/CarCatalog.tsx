@@ -198,6 +198,7 @@ interface Filters {
 export function CarCatalog() {
   const [cars, setCars] = useState<CarListing[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
   const [filters, setFilters] = useState<Filters>({
@@ -206,6 +207,7 @@ export function CarCatalog() {
 
   const fetchCars = useCallback(async (f: Filters, p: number) => {
     setIsLoading(true)
+    setLoadError(false)
     try {
       const params = new URLSearchParams({ page: String(p), limit: '12' })
       if (f.city) params.set('city', f.city)
@@ -213,6 +215,7 @@ export function CarCatalog() {
       if (f.slot) params.set('slot', f.slot)
 
       const res = await fetch(`/api/cars?${params}`)
+      if (!res.ok) throw new Error('Catalog unavailable')
       if (res.ok) {
         const data = await res.json()
         // Клиентский поиск по марке/модели
@@ -225,6 +228,7 @@ export function CarCatalog() {
         setTotal(data.pagination.total)
       }
     } catch (e) {
+      setLoadError(true)
       console.error('Failed to fetch cars:', e)
     } finally {
       setIsLoading(false)
@@ -311,7 +315,7 @@ export function CarCatalog() {
       </div>
 
       {/* Счётчик */}
-      {!isLoading && (
+      {!isLoading && !loadError && (
         <div className="catalog-count"><span>В каталоге</span><strong>{total}</strong><span>автомобилей</span></div>
       )}
 
@@ -321,6 +325,12 @@ export function CarCatalog() {
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="h-80 rounded-xl bg-muted animate-pulse" />
           ))}
+        </div>
+      ) : loadError ? (
+        <div role="alert" className="catalog-empty-copy">
+          <h3>Не удалось загрузить каталог.</h3>
+          <p>Попробуйте ещё раз через минуту.</p>
+          <button className="catalog-action-secondary mt-5" onClick={() => void fetchCars(filters, page)}>Повторить</button>
         </div>
       ) : cars.length === 0 ? (
         <div className={`catalog-empty ${unfilteredEmpty ? 'catalog-empty-first' : ''}`}>

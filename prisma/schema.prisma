@@ -89,6 +89,7 @@ model User {
   sellerProfile SellerProfile?
 
   // Relations
+  mediaAssets   MediaAsset[]
   cars          Car[]
   bookingsAsBuyer Booking[] @relation("BuyerBookings")
   payments      Payment[]
@@ -157,6 +158,7 @@ model Car {
   monthlyReach    Int       @default(0)  // Примерный охват/месяц
   weeklyKm        Int       @default(0)  // Пробег в неделю
 
+  mediaAssets     MediaAsset[]
   adSlots         AdSlot[]
 
   createdAt       DateTime  @default(now())
@@ -283,4 +285,21 @@ model Payment {
   updatedAt       DateTime      @updatedAt
 
   @@map("payments")
+}
+
+// Only car photos: identity documents are not accepted by the public upload API.
+model MediaAsset {
+  id            String   @id @db.Uuid
+  ownerId       String
+  owner         User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  carId         String?
+  car           Car?     @relation(fields: [carId], references: [id], onDelete: SetNull)
+  storageKey    String   @unique
+  storageDriver String
+  sizeBytes     Int
+  createdAt     DateTime @default(now())
+
+  @@index([ownerId, carId])
+  @@index([carId])
+  @@map("media_assets")
 }

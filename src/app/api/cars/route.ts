@@ -90,7 +90,7 @@ const CreateCarSchema = z.object({
   city: z.string().min(1).max(50),
   districts: z.array(z.string()).min(1).max(10),
   photoUrls: z.array(z.string().url()).min(1).max(10),
-  documentUrls: z.array(z.string().url()).max(5).default([]),
+  documentUrls: z.array(z.string().url()).max(0).default([]),
   // Цены за 5 слотов
   slotPrices: z.object({
     HOOD: z.object({ weekly: z.number().positive(), monthly: z.number().positive() }).optional(),
@@ -124,6 +124,16 @@ export async function POST(req: NextRequest) {
 
     const { slotPrices, ...carData } = parsed.data
 
+    const mediaIds = carData.photoUrls.map(url => new URL(url).pathname.match(/^\/api\/media\/([a-f0-9-]{36})$/)?.[1])
+    if (mediaIds.some(id => !id) || new Set(mediaIds).size !== mediaIds.length) {
+      return NextResponse.json({ error: 'Загрузите фотографии через форму автомобиля.' }, { status: 400 })
+    }
+    const ids = mediaIds as string[]
+    const assets = await prisma.mediaAsset.count({ where: { id: { in: ids }, ownerId: session.user.id, carId: null } })
+    if (assets !== ids.length) return NextResponse.json({ error: 'Фотографии недоступны. Загрузите их повторно.' }, { status: 400 })
+    const origin = process.env.NEXTAUTH_URL || req.nextUrl.origin
+    carData.photoUrls = ids.map(id => new URL(`/api/media/${id}`, origin).toString())
+
     // Создаём авто + 5 слотов атомарно
     const car = await prisma.$transaction(async (tx) => {
       const newCar = await tx.car.create({
@@ -147,6 +157,9 @@ export async function POST(req: NextRequest) {
         },
         include: { adSlots: true }
       })
+
+      const linked = await tx.mediaAsset.updateMany({ where: { id: { in: ids }, ownerId: session.user.id, carId: null }, data: { carId: newCar.id } })
+      if (linked.count !== ids.length) throw new Error('PHOTO_ALREADY_LINKED')
 
       // Создаём SellerProfile если не существует
       await tx.sellerProfile.upsert({
