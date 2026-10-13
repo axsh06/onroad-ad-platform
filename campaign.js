@@ -70,8 +70,12 @@ function downloadPlan() {
   const link = document.createElement('a');
   link.href = url;
   link.download = 'onroad-campaign-estimate.txt';
+  link.hidden = true;
+  document.body.appendChild(link);
   link.click();
-  URL.revokeObjectURL(url);
+  link.remove();
+  // Allow the browser to begin reading the file before releasing its URL.
+  setTimeout(() => URL.revokeObjectURL(url), 30000);
 }
 
 carsRange.addEventListener('input', updateEstimate);

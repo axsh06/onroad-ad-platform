@@ -45,6 +45,10 @@ export async function POST(req: NextRequest) {
       )
     }
     const { slotId, campaignId, duration, startDate, mockupData, mockupUrl } = parsed.data
+    if (campaignId) {
+      const campaign = await prisma.campaign.findFirst({ where: { id: campaignId, buyerId: session.user.id }, select: { id: true } })
+      if (!campaign) return NextResponse.json({ error: 'Campaign not found' }, { status: 404 })
+    }
 
     // 3. Получение слота и проверка доступности
     const slot = await prisma.adSlot.findUnique({

@@ -68,6 +68,7 @@ export async function GET(req: NextRequest) {
         // Не показываем гос. номер в каталоге
         plateNumber: undefined,
         documentUrls: undefined,
+        moderationNote: undefined,
       })),
       pagination: { page, limit, total, pages: Math.ceil(total / limit) }
     })
