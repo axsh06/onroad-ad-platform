@@ -33,6 +33,32 @@ const copy = {
   }
 };
 
+// Editorial visual direction. Keep both language versions aligned with the page.
+Object.assign(copy.ru, {
+  heroEyebrow: 'РЕКЛАМА В РИТМЕ ГОРОДА', heroTitle: 'ВАШ БРЕНД.<br />В ДВИЖЕНИИ.',
+  heroDesc: 'Соединяем бренды и автомобили.<br />Превращаем привычные маршруты в возможности.',
+  heroCaption: 'ГОРОД ЕДЕТ. БРЕНД ВИДЯТ.', scrollText: 'УЗНАТЬ БОЛЬШЕ ↓',
+  introKicker: 'КОНЦЕПЦИЯ', introTitle: 'Новый взгляд<br />на привычные<br />маршруты.',
+  stepsTitle: 'Простой путь<br />к сотрудничеству.', inventoryTitle: 'АВТОМОБИЛИ,<br />КОТОРЫЕ ЗАМЕЧАЮТ.',
+  zonesTitle: 'ПЯТЬ ЗОН.<br />ВАШ ВЫБОР.', brandsTitle: 'БЫТЬ ЧАСТЬЮ<br />ДВИЖЕНИЯ.',
+  driversTitle: 'ВАШ АВТОМОБИЛЬ.<br />НОВЫЕ ВОЗМОЖНОСТИ.',
+  catalogCta: 'Выбрать автомобиль', sampleLabel: 'Пример формата',
+  privacyLink: 'Конфиденциальность ↗', footerNote: 'Алматы, Казахстан',
+  finalTitle: 'Начните свою<br />историю с ONROAD.'
+});
+Object.assign(copy.kz, {
+  heroEyebrow: 'ҚАЛА ЫРҒАҒЫНДАҒЫ ЖАРНАМА', heroTitle: 'СІЗДІҢ БРЕНД.<br />ҚОЗҒАЛЫСТА.',
+  heroDesc: 'Брендтер мен автомобильдерді байланыстырамыз.<br />Күнделікті бағыттарды мүмкіндікке айналдырамыз.',
+  heroCaption: 'ҚАЛА ҚОЗҒАЛАДЫ. БРЕНД КӨРІНЕДІ.', scrollText: 'ТОЛЫҒЫРАҚ ↓',
+  introKicker: 'ТҰЖЫРЫМДАМА', introTitle: 'Күнделікті<br />бағыттарға<br />жаңа көзқарас.',
+  stepsTitle: 'Ынтымақтастыққа<br />қарапайым жол.', inventoryTitle: 'КӨЗГЕ ТҮСЕТІН<br />АВТОМОБИЛЬДЕР.',
+  zonesTitle: 'БЕС АЙМАҚ.<br />СІЗДІҢ ТАҢДАУЫҢЫЗ.', brandsTitle: 'ҚОЗҒАЛЫСТЫҢ<br />БІР БӨЛІГІ БОЛЫҢЫЗ.',
+  driversTitle: 'СІЗДІҢ АВТОМОБИЛЬ.<br />ЖАҢА МҮМКІНДІКТЕР.',
+  catalogCta: 'Автомобиль таңдау', sampleLabel: 'Формат үлгісі',
+  privacyLink: 'Құпиялылық ↗', footerNote: 'Алматы, Қазақстан',
+  finalTitle: 'ONROAD-пен<br />өз тарихыңызды бастаңыз.'
+});
+
 let language = 'ru';
 let activeType = 'driver';
 const modal = document.getElementById('lead-modal');

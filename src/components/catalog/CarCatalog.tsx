@@ -87,7 +87,7 @@ function CarCard({ car }: { car: CarListing }) {
 
   return (
     <Card
-      className="group overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer border-border/60"
+      className="catalog-vehicle-card group overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer border-border/60"
       onClick={() => router.push(`/catalog/${car.id}`)}
     >
       {/* Фото */}
@@ -240,6 +240,8 @@ export function CarCatalog() {
     setPage(1)
   }
 
+  const unfilteredEmpty = total === 0 && !Object.values(filters).some(Boolean)
+
   return (
     <div className="space-y-6">
       {/* Заголовок */}
@@ -257,7 +259,7 @@ export function CarCatalog() {
       </div>
 
       {/* Фильтры */}
-      <div className="flex flex-wrap gap-3 p-4 bg-muted/40 rounded-xl border">
+      <div className="catalog-filters flex flex-wrap gap-3 p-4">
         <div className="flex items-center gap-2 catalog-filter-label">
           <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
           <span className="text-sm font-medium">Подбор</span>
@@ -273,34 +275,34 @@ export function CarCatalog() {
           />
         </div>
 
-        <Select value={filters.city} onValueChange={v => handleFilterChange('city', v)}>
+        <Select value={filters.city || 'all'} onValueChange={v => handleFilterChange('city', v === 'all' ? '' : v)}>
           <SelectTrigger className="w-[140px] h-9">
             <SelectValue placeholder="Город" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Все города</SelectItem>
+            <SelectItem value="all">Все города</SelectItem>
             {CITIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
           </SelectContent>
         </Select>
 
-        <Select value={filters.carClass} onValueChange={v => handleFilterChange('carClass', v)}>
+        <Select value={filters.carClass || 'all'} onValueChange={v => handleFilterChange('carClass', v === 'all' ? '' : v)}>
           <SelectTrigger className="w-[160px] h-9">
             <SelectValue placeholder="Класс авто" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Все классы</SelectItem>
+            <SelectItem value="all">Все классы</SelectItem>
             {Object.entries(CAR_CLASS_LABELS).map(([k, v]) => (
               <SelectItem key={k} value={k}>{v}</SelectItem>
             ))}
           </SelectContent>
         </Select>
 
-        <Select value={filters.slot} onValueChange={v => handleFilterChange('slot', v)}>
+        <Select value={filters.slot || 'all'} onValueChange={v => handleFilterChange('slot', v === 'all' ? '' : v)}>
           <SelectTrigger className="w-[170px] h-9">
             <SelectValue placeholder="Слот" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Все слоты</SelectItem>
+            <SelectItem value="all">Все слоты</SelectItem>
             {Object.entries(SLOT_LABELS).map(([k, v]) => (
               <SelectItem key={k} value={k}>{v}</SelectItem>
             ))}
@@ -321,16 +323,16 @@ export function CarCatalog() {
           ))}
         </div>
       ) : cars.length === 0 ? (
-        <div className={`catalog-empty ${total === 0 ? 'catalog-empty-first' : ''}`}>
-          {total === 0 && <div className="catalog-empty-image">
-            <Image src="/hero-car.jpg" alt="Пример автомобиля для размещения рекламы" fill priority sizes="(max-width: 760px) 100vw, 50vw" />
+        <div className={`catalog-empty ${unfilteredEmpty ? 'catalog-empty-first' : ''}`}>
+          {unfilteredEmpty && <div className="catalog-empty-image">
+            <Image src="/hero-silver.jpg" alt="Пример автомобиля для размещения рекламы" fill priority sizes="(max-width: 760px) 100vw, 50vw" />
             <span>ПРИМЕР ФОРМАТА · НЕ АКТИВНОЕ ОБЪЯВЛЕНИЕ</span>
           </div>}
           <div className="catalog-empty-copy">
-            <span className="catalog-eyebrow"><i /> {total === 0 ? 'КАТАЛОГ НАПОЛНЯЕТСЯ' : 'ПО ВАШЕМУ ЗАПРОСУ'}</span>
-            <h3>{total === 0 ? 'Первые автомобили скоро появятся.' : 'Подходящих автомобилей пока нет.'}</h3>
-            <p>{total === 0 ? 'Каждая машина появится в каталоге после проверки заявки. Пока можно предложить свой автомобиль или рассчитать примерный бюджет размещения.' : 'Попробуйте изменить город, класс автомобиля или зону размещения.'}</p>
-            {total === 0 ? <div className="catalog-empty-actions"><Link href="/seller/register" className="catalog-action-primary">Предложить автомобиль <span aria-hidden="true">↗</span></Link><Link href="/campaign.html" className="catalog-action-secondary">Рассчитать кампанию <span aria-hidden="true">↗</span></Link></div> : <button className="catalog-action-secondary" onClick={() => setFilters({ city: '', carClass: '', slot: '', search: '' })}>Сбросить фильтры</button>}
+            <span className="catalog-eyebrow"><i /> {unfilteredEmpty ? 'КАТАЛОГ НАПОЛНЯЕТСЯ' : 'ПО ВАШЕМУ ЗАПРОСУ'}</span>
+            <h3>{unfilteredEmpty ? 'Первые автомобили скоро появятся.' : 'Подходящих автомобилей пока нет.'}</h3>
+            <p>{unfilteredEmpty ? 'Каждая машина появится в каталоге после проверки заявки. Пока можно предложить свой автомобиль или рассчитать примерный бюджет размещения.' : 'Попробуйте изменить город, класс автомобиля или зону размещения.'}</p>
+            {unfilteredEmpty ? <div className="catalog-empty-actions"><Link href="/seller/register" className="catalog-action-primary">Предложить автомобиль <span aria-hidden="true">↗</span></Link><Link href="/campaign.html" className="catalog-action-secondary">Рассчитать кампанию <span aria-hidden="true">↗</span></Link></div> : <button className="catalog-action-secondary" onClick={() => setFilters({ city: '', carClass: '', slot: '', search: '' })}>Сбросить фильтры</button>}
           </div>
         </div>
       ) : (

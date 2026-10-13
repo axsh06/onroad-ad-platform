@@ -24,7 +24,7 @@ function LoginForm() {
     router.replace(params.get('callbackUrl') || '/dashboard')
   }
 
-  return <main className="grid min-h-screen place-items-center bg-[#080a07] px-5 py-10 text-white">
+  return <main className="auth-page grid min-h-screen place-items-center bg-[#080a07] px-5 py-10 text-white">
     <div className="w-full max-w-md">
       <Link href="/index.html" className="mb-8 flex justify-center"><Image src="/onroad-logo.svg" alt="ONROAD" width={170} height={38} /></Link>
       <form onSubmit={submit} className="space-y-4 rounded-2xl border border-white/10 bg-white/[0.03] p-7">
@@ -41,5 +41,5 @@ function LoginForm() {
 }
 
 export default function LoginPage() {
-  return <Suspense fallback={<main className="grid min-h-screen place-items-center bg-[#080a07] text-zinc-400">Загружаем вход…</main>}><LoginForm /></Suspense>
+  return <Suspense fallback={<main className="auth-page grid min-h-screen place-items-center bg-[#080a07] text-zinc-400">Загружаем вход…</main>}><LoginForm /></Suspense>
 }

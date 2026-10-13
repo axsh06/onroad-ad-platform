@@ -39,7 +39,7 @@ export default function BuyerRegisterPage() {
     }
   }
 
-  return <main className="min-h-screen bg-[#080a07] px-5 py-10 text-white">
+  return <main className="auth-page min-h-screen bg-[#080a07] px-5 py-10 text-white">
     <div className="mx-auto max-w-md">
       <Link href="/index.html" className="mb-8 flex justify-center"><Image src="/onroad-logo.svg" alt="ONROAD" width={170} height={38} /></Link>
       <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-7">
