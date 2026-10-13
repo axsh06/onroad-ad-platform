@@ -8,6 +8,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -242,18 +243,24 @@ export function CarCatalog() {
   return (
     <div className="space-y-6">
       {/* Заголовок */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Каталог авто</h1>
-        <p className="text-muted-foreground mt-1">
-          Выберите авто и слот для вашей рекламы
-        </p>
+      <div className="catalog-intro">
+        <div>
+          <span className="catalog-eyebrow"><i /> ПОДБОР МАШИН ДЛЯ КАМПАНИИ</span>
+          <h1>Автомобили<br /><em>в движении.</em></h1>
+          <p>Выберите город, класс машины и зону размещения. Условия кампании согласуем до запуска.</p>
+        </div>
+        <div className="catalog-intro-note">
+          <span>ONROAD / 01</span>
+          <strong>Пять зон<br />для вашего бренда</strong>
+          <Link href="/campaign.html">Рассчитать кампанию <span aria-hidden="true">↗</span></Link>
+        </div>
       </div>
 
       {/* Фильтры */}
       <div className="flex flex-wrap gap-3 p-4 bg-muted/40 rounded-xl border">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 catalog-filter-label">
           <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm font-medium">Фильтры:</span>
+          <span className="text-sm font-medium">Подбор</span>
         </div>
 
         <div className="relative flex-1 min-w-[200px]">
@@ -303,9 +310,7 @@ export function CarCatalog() {
 
       {/* Счётчик */}
       {!isLoading && (
-        <p className="text-sm text-muted-foreground">
-          Найдено: <strong>{total}</strong> авто
-        </p>
+        <div className="catalog-count"><span>В каталоге</span><strong>{total}</strong><span>автомобилей</span></div>
       )}
 
       {/* Грид */}
@@ -316,11 +321,17 @@ export function CarCatalog() {
           ))}
         </div>
       ) : cars.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-white/10 bg-white/[.02] py-20 text-center">
-          <span className="mb-4 text-5xl">🔍</span>
-          <h3 className="text-lg font-semibold">{total === 0 ? 'Первые автомобили скоро появятся' : 'Авто не найдены'}</h3>
-          <p className="mt-2 max-w-md text-muted-foreground">{total === 0 ? 'Публичный каталог наполняется после проверки заявок. Пока можно предложить свой автомобиль или посчитать черновой бюджет кампании.' : 'Попробуйте изменить параметры фильтров.'}</p>
-          {total === 0 && <div className="mt-5 flex flex-wrap justify-center gap-3"><Link href="/seller/register" className="rounded-lg bg-lime-300 px-4 py-2.5 text-sm font-semibold text-black">Предложить автомобиль</Link><Link href="/campaign.html" className="rounded-lg border border-white/15 px-4 py-2.5 text-sm font-semibold text-white">Открыть калькулятор</Link></div>}
+        <div className={`catalog-empty ${total === 0 ? 'catalog-empty-first' : ''}`}>
+          {total === 0 && <div className="catalog-empty-image">
+            <Image src="/hero-car.jpg" alt="Пример автомобиля для размещения рекламы" fill priority sizes="(max-width: 760px) 100vw, 50vw" />
+            <span>ПРИМЕР ФОРМАТА · НЕ АКТИВНОЕ ОБЪЯВЛЕНИЕ</span>
+          </div>}
+          <div className="catalog-empty-copy">
+            <span className="catalog-eyebrow"><i /> {total === 0 ? 'КАТАЛОГ НАПОЛНЯЕТСЯ' : 'ПО ВАШЕМУ ЗАПРОСУ'}</span>
+            <h3>{total === 0 ? 'Первые автомобили скоро появятся.' : 'Подходящих автомобилей пока нет.'}</h3>
+            <p>{total === 0 ? 'Каждая машина появится в каталоге после проверки заявки. Пока можно предложить свой автомобиль или рассчитать примерный бюджет размещения.' : 'Попробуйте изменить город, класс автомобиля или зону размещения.'}</p>
+            {total === 0 ? <div className="catalog-empty-actions"><Link href="/seller/register" className="catalog-action-primary">Предложить автомобиль <span aria-hidden="true">↗</span></Link><Link href="/campaign.html" className="catalog-action-secondary">Рассчитать кампанию <span aria-hidden="true">↗</span></Link></div> : <button className="catalog-action-secondary" onClick={() => setFilters({ city: '', carClass: '', slot: '', search: '' })}>Сбросить фильтры</button>}
+          </div>
         </div>
       ) : (
         <>
