@@ -25,7 +25,7 @@ RateBucket records are expiry-tagged; expired rows may be periodically removed b
 
 ## Assets and sources
 
-- Mercedes-Benz S-Class photograph supplied by the project owner, copied unchanged to `public/photos/mercedes-s-class.png`. Used as the studio example; not a real catalog listing. The homepage hero uses a generated W223 brand visualization at `public/photos/hero-w223-astana.png`, following the requested original composition. See `docs/design/visual-direction.md` for the exact prompt. The hero is not an interactive W223 model.
+- Mercedes-Benz S-Class photograph supplied by the project owner, copied unchanged to `public/photos/mercedes-s-class.png`. This was the previous photo-studio example; the current studio uses the supplied Porsche photographs. The homepage hero uses a generated W223 brand visualization at `public/photos/hero-w223-astana.png`, following the requested original composition. See `docs/design/visual-direction.md` for the exact prompt. The hero is not an interactive W223 model.
 - The “Be part of the movement” section uses the owner-approved Range Rover photograph with the ONROAD front-door decal at `public/photos/range-rover-onroad.png`. The image is served through Next.js Image optimization, with responsive CSS framing that keeps the car and door logo visible. It is a brand placement illustration, not a catalog listing.
 - Demonstration 3D asset: 2018 BMW M5 (F90) by OUTPISTON, supplied by the project owner, replacing Car Concept. The unchanged GLB embeds CC BY-NC-SA 4.0 attribution; see `public/models/README.md`. It is included for the noncommercial prototype and requires separate permission or replacement before commercial use. Homepage markers follow the actual front door, hood and rear-window surfaces. The rear-window demonstration does not change existing bookable rear-body slots. Demo is not presented as an individual owner's exact car.
 - Viewer: @google/model-viewer, https://modelviewer.dev/examples/annotations/ . Model loading is deferred until requested except for assigned vehicle models. Reduced motion disables rotation and page animations.
@@ -49,12 +49,29 @@ zone views. PNG export uses the current camera and includes model attribution.
 The source model and CC BY-SA 4.0 attribution are documented in
 `public/models/README.md`. UI text supports RU, KK and EN.
 
-The existing photo editor remains available in the Photo preview tab. Switching
+The photo editor remains available in the Photo preview tab. Switching
 tabs preserves the current session in each editor, but refreshing/leaving the
 page clears the 3D design. Download the PNG first. This is a visual mockup;
 physical sizing, installation and rear-window suitability require separate
 agreement. The approximately 24 MB model loads on opening the studio; a retry
 and photo alternative are offered if WebGL or loading is unavailable.
+
+### Porsche photographs — 2D preview
+
+`/studio#photo` opens the 2D editor without loading the 3D model until that tab
+is selected. Three supplied photographs were processed with the built-in image
+editing tool: scenery removed, transparent alpha retained, clarity enhanced.
+Assets and exact prompts: `public/photos/porsche-studio/README.md`.
+
+Side, front and rear views have independent in-memory canvases. The side-door,
+hood and rear-window polygons clip decals to their preview surfaces. Up to 12
+decals per angle support upload, selection, movement, size, rotation, opacity,
+removal and PNG export at 1600 × 1000. The placement guide is omitted from
+exports. Transparent PNG/WebP is recommended; JPEG and simple SVG also work.
+Files are processed locally, limited to 8 MB. Custom photographs still support
+free placement. Switching views or RU/KK/EN keeps the artwork; closing or
+refreshing the page clears it. The photos are retouched visual references,
+not print templates or verified catalog inventory.
 
 No payment processing, bank transfer, guaranteed earnings or automatic creation of a matching 3D vehicle model. Actual model files must be provided by an administrator with suitable usage rights. Uploaded model coordinates are configured manually. Availability and dates still require campaign approval.
 
