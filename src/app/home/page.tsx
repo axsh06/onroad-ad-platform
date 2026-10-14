@@ -150,13 +150,6 @@ export default function HomePage() {
           </div>
           <div className="editorial-caption">
             <span>ONROAD · ASTANA, KZ</span>
-            <span>
-              {t(
-                "Mercedes-Benz W223 · визуализация бренда",
-                "Mercedes-Benz W223 · бренд визуализациясы",
-                "Mercedes-Benz W223 · brand visualization",
-              )}
-            </span>
           </div>
         </section>
         <section className="city-strip" id="cities">

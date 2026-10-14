@@ -1406,10 +1406,6 @@
     inset: auto 20px 22px;
     font-size: 8px;
   }
-  .editorial-caption span:last-child {
-    max-width: 160px;
-    text-align: right;
-  }
 }
 .logo-studio {
   display: grid;
