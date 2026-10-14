@@ -78,7 +78,7 @@ export default function SellerRegisterPage() {
   return <main className="auth-page min-h-screen bg-[#080a07] px-5 py-8 text-white sm:px-8">
     <div className="mx-auto max-w-3xl">
       <header className="mb-8 flex items-center justify-between border-b border-white/10 pb-5">
-        <Link href="/index.html" aria-label="На главную"><Image src="/onroad-logo.svg" alt="ONROAD" width={170} height={38} /></Link>
+        <Link href="/index.html" aria-label="На главную"><Image src="/onroad-logo.svg" alt="ONROAD" width={170} height={33} /></Link>
         <Link href="/index.html" className="inline-flex items-center gap-2 text-sm text-zinc-400 hover:text-white"><ArrowLeft size={16} /> На главную</Link>
       </header>
       <div className="mb-8">

@@ -33,7 +33,7 @@ export default function CarDetailPage() {
 
   return <main className="min-h-screen bg-[#080a07] px-5 py-6 text-white sm:px-8">
     <div className="mx-auto max-w-7xl">
-      <header className="mb-8 flex items-center justify-between border-b border-white/10 pb-5"><Link href="/index.html"><Image src="/onroad-logo.svg" alt="ONROAD" width={160} height={36} /></Link><Link href="/catalog" className="inline-flex items-center gap-2 text-sm text-zinc-400 hover:text-white"><ArrowLeft size={16} /> К каталогу</Link></header>
+      <header className="mb-8 flex items-center justify-between border-b border-white/10 pb-5"><Link href="/index.html"><Image src="/onroad-logo.svg" alt="ONROAD" width={160} height={31} /></Link><Link href="/catalog" className="inline-flex items-center gap-2 text-sm text-zinc-400 hover:text-white"><ArrowLeft size={16} /> К каталогу</Link></header>
       <div className="grid gap-10 lg:grid-cols-[1.1fr_.9fr]">
         <section>
           <div className="mb-6"><p className="mb-2 text-xs uppercase tracking-[.2em] text-lime-300">Карточка автомобиля</p><h1 className="text-3xl font-bold sm:text-4xl">{car.make} {car.model}</h1><p className="mt-2 flex items-center gap-2 text-sm text-zinc-400">{car.year} · {car.color} <span>·</span><MapPin size={14} />{car.city}</p></div>

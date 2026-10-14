@@ -26,7 +26,7 @@ function LoginForm() {
 
   return <main className="auth-page grid min-h-screen place-items-center bg-[#080a07] px-5 py-10 text-white">
     <div className="w-full max-w-md">
-      <Link href="/index.html" className="mb-8 flex justify-center"><Image src="/onroad-logo.svg" alt="ONROAD" width={170} height={38} /></Link>
+      <Link href="/index.html" className="mb-8 flex justify-center"><Image src="/onroad-logo.svg" alt="ONROAD" width={170} height={33} /></Link>
       <form onSubmit={submit} className="space-y-4 rounded-2xl border border-white/10 bg-white/[0.03] p-7">
         <p className="text-xs font-semibold uppercase tracking-[.2em] text-lime-300">Кабинет ONROAD</p>
         <h1 className="text-2xl font-bold">Войти</h1>
