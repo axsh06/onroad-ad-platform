@@ -186,15 +186,6 @@ export function AuthForm({
           </p>
         </div>
         <form className="panel form-stack" onSubmit={submit}>
-          {role && step === "form" && !emailConfigured && (
-            <p className="form-notice" role="status">
-              {t(
-                "Регистрация пока не открыта: отправка кодов подтверждения ещё не подключена. Аккаунт не будет создан до подключения почты.",
-                "Тіркелу әлі ашылған жоқ: растау кодтарын жіберу қосылмаған. Пошта қосылғанша аккаунт жасалмайды.",
-                "Registration is not open yet: verification email delivery has not been connected. Accounts will not be created until email is available.",
-              )}
-            </p>
-          )}
           {role && step === "form" && (
             <>
               <label>
