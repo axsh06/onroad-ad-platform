@@ -1,0 +1,37 @@
+export const VEHICLE_MODELS: Record<string, string[]> = {
+  "Mercedes-Benz": [
+    "S-Class W223",
+    "S-Class W222",
+    "E-Class",
+    "C-Class",
+    "CLS",
+    "GLE",
+    "GLS",
+    "G-Class",
+  ],
+  BMW: ["3 Series", "5 Series", "7 Series", "X3", "X5", "X6", "X7", "i7"],
+  Toyota: [
+    "Camry",
+    "Land Cruiser 300",
+    "Land Cruiser Prado",
+    "RAV4",
+    "Crown",
+    "Corolla",
+  ],
+  Lexus: ["ES", "LS", "RX", "GX", "LX"],
+  Audi: ["A4", "A6", "A7", "A8", "Q5", "Q7", "Q8"],
+  Porsche: ["911", "Panamera", "Cayenne", "Macan", "Taycan"],
+  Hyundai: ["Sonata", "Elantra", "Tucson", "Santa Fe", "Palisade"],
+  Kia: ["K5", "K8", "Sportage", "Sorento", "Carnival"],
+  Genesis: ["G70", "G80", "G90", "GV70", "GV80"],
+  Tesla: ["Model 3", "Model S", "Model X", "Model Y"],
+  "Land Rover": ["Range Rover", "Range Rover Sport", "Defender", "Discovery"],
+  Zeekr: ["001", "007", "009", "X"],
+};
+export const CAR_CLASSES: Record<string, [string, string, string]> = {
+  PREMIUM: ["Премиум", "Премиум", "Premium"],
+  LUXURY: ["Люкс", "Люкс", "Luxury"],
+  SPORT: ["Спорт", "Спорт", "Sport"],
+  SUV: ["Внедорожник", "Жол талғамайтын", "SUV"],
+  SUPERCAR: ["Суперкар", "Суперкар", "Supercar"],
+};

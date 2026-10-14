@@ -14,7 +14,8 @@
     "postinstall": "prisma generate",
     "deploy:build": "node scripts/deploy.mjs",
     "db:deploy": "prisma migrate deploy",
-    "admin:promote": "node scripts/promote-admin.mjs"
+    "admin:promote": "node scripts/promote-admin.mjs",
+    "mail:setup": "python3 scripts/setup-gmail.py"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1150.0",

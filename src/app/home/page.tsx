@@ -113,7 +113,13 @@ export default function HomePage() {
     <div className="platform light-site">
       <Header />
       <main>
-        <section className="new-hero">
+        <section className="new-hero editorial-hero">
+          <img
+            className="editorial-backdrop"
+            src="/photos/hero-w223-astana.png"
+            alt="Mercedes-Benz S-Class W223 с макетом ONROAD"
+            fetchPriority="high"
+          />
           <div className="sky-motion" aria-hidden="true" />
           <div className="hero-heading">
             <p className="eyebrow">ONROAD / ASTANA, KZ</p>
@@ -142,22 +148,13 @@ export default function HomePage() {
               </Link>
             </div>
           </div>
-          <div className="hero-real-car">
-            <img
-              src="/photos/mercedes-s-class.png"
-              alt="Mercedes-Benz S-Class"
-              fetchPriority="high"
-            />
-            <img
-              className="car-decal"
-              src="/onroad-logo-dark.svg"
-              alt="ONROAD"
-            />
-            <span className="photo-caption">
+          <div className="editorial-caption">
+            <span>ONROAD · ASTANA, KZ</span>
+            <span>
               {t(
-                "Визуализация размещения ONROAD на реальной фотографии",
-                "Нақты фотодағы ONROAD орналастыру визуализациясы",
-                "ONROAD placement mockup on a real photograph",
+                "Mercedes-Benz W223 · визуализация бренда",
+                "Mercedes-Benz W223 · бренд визуализациясы",
+                "Mercedes-Benz W223 · brand visualization",
               )}
             </span>
           </div>

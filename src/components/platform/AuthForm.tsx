@@ -9,9 +9,11 @@ import { useLocale } from "./Locale";
 export function AuthForm({
   role,
   verify = false,
+  emailConfigured = true,
 }: {
   role?: "SELLER" | "BUYER";
   verify?: boolean;
+  emailConfigured?: boolean;
 }) {
   const { t, locale } = useLocale();
   const router = useRouter();
@@ -30,6 +32,7 @@ export function AuthForm({
   const change = (key: keyof typeof form, value: string) =>
     setForm({ ...form, [key]: value });
   async function resend() {
+    if (busy || !emailConfigured) return;
     setBusy(true);
     setError("");
     try {
@@ -59,6 +62,7 @@ export function AuthForm({
   }
   async function submit(e: FormEvent) {
     e.preventDefault();
+    if (busy || (role && step === "form" && !emailConfigured)) return;
     setBusy(true);
     setError("");
     setNotice("");
@@ -182,6 +186,15 @@ export function AuthForm({
           </p>
         </div>
         <form className="panel form-stack" onSubmit={submit}>
+          {role && step === "form" && !emailConfigured && (
+            <p className="form-notice" role="status">
+              {t(
+                "Регистрация пока не открыта: отправка кодов подтверждения ещё не подключена. Аккаунт не будет создан до подключения почты.",
+                "Тіркелу әлі ашылған жоқ: растау кодтарын жіберу қосылмаған. Пошта қосылғанша аккаунт жасалмайды.",
+                "Registration is not open yet: verification email delivery has not been connected. Accounts will not be created until email is available.",
+              )}
+            </p>
+          )}
           {role && step === "form" && (
             <>
               <label>
@@ -269,7 +282,12 @@ export function AuthForm({
               <button
                 className="text-button"
                 type="button"
-                disabled={busy || !form.email || form.password.length < 8}
+                disabled={
+                  busy ||
+                  !emailConfigured ||
+                  !form.email ||
+                  form.password.length < 8
+                }
                 onClick={resend}
               >
                 {t("Отправить новый код", "Жаңа код жіберу", "Send a new code")}
@@ -305,7 +323,12 @@ export function AuthForm({
               {notice}
             </p>
           )}
-          <button className="solid-button" disabled={busy}>
+          <button
+            className="solid-button"
+            disabled={
+              busy || Boolean(role && step === "form" && !emailConfigured)
+            }
+          >
             {busy
               ? t("Подождите…", "Күтіңіз…", "Please wait…")
               : step === "verify"

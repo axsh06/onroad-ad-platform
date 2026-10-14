@@ -1,30 +1,8 @@
 "use client";
-
-// src/components/canvas/LogoConfigurator.tsx
-// ─────────────────────────────────────────────────────────────────
-// Интерактивный конфигуратор: загрузка логотипа → drag-and-drop →
-// масштабирование на слот автомобиля. Powered by Fabric.js.
-// ─────────────────────────────────────────────────────────────────
-
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import * as fabric from "fabric";
-import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
-import { Badge } from "@/components/ui/badge";
-import {
-  Upload,
-  RotateCcw,
-  Download,
-  ZoomIn,
-  ZoomOut,
-  Trash2,
-} from "lucide-react";
 import { useLocale } from "@/components/platform/Locale";
 import { SLOT_NAMES } from "@/lib/slots";
-import { cn } from "@/lib/utils";
-
-// ─── Типы ──────────────────────────────────────────────────────
-
 export type SlotType =
   | "LEFT_DOOR"
   | "RIGHT_DOOR"
@@ -34,524 +12,400 @@ export type SlotType =
   | "REAR_DOORS"
   | "FENDERS"
   | "REAR_WINDOW_BUMPER";
-
-interface SlotZone {
-  id: SlotType;
-  label: string;
-  /** Координаты зоны на базовом изображении авто (px, 800×500 canvas) */
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  clipPath?: fabric.Rect;
-}
-
-interface LogoConfiguratorProps {
-  /** URL изображения авто (боковой вид) */
+type Props = {
   carImageUrl: string;
-  /** Активный слот */
   selectedSlot: SlotType;
-  /** Callback с JSON-состоянием канваса + PNG dataURL */
   onChange?: (data: { fabricJson: object; previewUrl: string }) => void;
   className?: string;
-}
-
-// ─── Конфигурация зон для каждого слота ───────────────────────
-
-const SLOT_ZONES: Record<SlotType, SlotZone> = {
-  LEFT_DOOR: {
-    id: "LEFT_DOOR",
-    label: "Левая дверь",
-    x: 300,
-    y: 190,
-    width: 160,
-    height: 110,
-  },
-  RIGHT_DOOR: {
-    id: "RIGHT_DOOR",
-    label: "Правая дверь",
-    x: 300,
-    y: 190,
-    width: 160,
-    height: 110,
-  },
-  REAR_BODY: {
-    id: "REAR_BODY",
-    label: "Задняя часть кузова",
-    x: 100,
-    y: 190,
-    width: 160,
-    height: 90,
-  },
-  HOOD: {
-    id: "HOOD",
-    label: "Капот",
-    x: 480,
-    y: 80,
-    width: 160,
-    height: 80,
-  },
-  FRONT_DOORS: {
-    id: "FRONT_DOORS",
-    label: "Передние двери",
-    x: 300,
-    y: 140,
-    width: 160,
-    height: 120,
-  },
-  REAR_DOORS: {
-    id: "REAR_DOORS",
-    label: "Задние двери",
-    x: 145,
-    y: 140,
-    width: 150,
-    height: 120,
-  },
-  FENDERS: {
-    id: "FENDERS",
-    label: "Крылья",
-    x: 80,
-    y: 120,
-    width: 80,
-    height: 90,
-  },
-  REAR_WINDOW_BUMPER: {
-    id: "REAR_WINDOW_BUMPER",
-    label: "Заднее стекло / Бампер",
-    x: 60,
-    y: 95,
-    width: 100,
-    height: 60,
-  },
 };
-
-const CANVAS_WIDTH = 800;
-const CANVAS_HEIGHT = 450;
-
-// ─── Компонент ─────────────────────────────────────────────────
-
 export function LogoConfigurator({
   carImageUrl,
   selectedSlot,
   onChange,
-  className,
-}: LogoConfiguratorProps) {
+  className = "",
+}: Props) {
   const { t } = useLocale();
-  const canvasElRef = useRef<HTMLCanvasElement>(null);
-  const fabricRef = useRef<fabric.Canvas | null>(null);
+  const canvasNode = useRef<HTMLCanvasElement>(null);
+  const holder = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<fabric.Canvas | null>(null);
   const logoRef = useRef<fabric.FabricImage | null>(null);
-  const zoneRectRef = useRef<fabric.Rect | null>(null);
-
-  const [isLoading, setIsLoading] = useState(false);
-  const [logoOpacity, setLogoOpacity] = useState(90);
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
+  const [ready, setReady] = useState(false);
+  const [busy, setBusy] = useState(false);
   const [hasLogo, setHasLogo] = useState(false);
-  const [fileName, setFileName] = useState<string | null>(null);
-
-  // ─ Инициализация Fabric Canvas ─────────────────────────────
-
+  const [error, setError] = useState("");
+  const [exportUrl, setExportUrl] = useState("");
+  const [opacity, setOpacity] = useState(90);
+  const [angle, setAngle] = useState(0);
+  const [size, setSize] = useState(140);
+  useEffect(
+    () => () => {
+      if (exportUrl) URL.revokeObjectURL(exportUrl);
+    },
+    [exportUrl],
+  );
+  const emit = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || !onChangeRef.current) return;
+    try {
+      onChangeRef.current({
+        fabricJson: canvas.toJSON(),
+        previewUrl: canvas.toDataURL({
+          format: "jpeg",
+          quality: 0.85,
+          multiplier: 1,
+        }),
+      });
+    } catch {
+      /* A failed image load is reported by the load handler. */
+    }
+  }, []);
   useEffect(() => {
-    if (!canvasElRef.current) return;
-
-    const canvas = new fabric.Canvas(canvasElRef.current, {
-      width: CANVAS_WIDTH,
-      height: CANVAS_HEIGHT,
-      backgroundColor: "#f8f8f8",
+    if (!canvasNode.current || !holder.current) return;
+    let alive = true;
+    setReady(false);
+    setHasLogo(false);
+    setError("");
+    setExportUrl("");
+    logoRef.current = null;
+    const canvas = new fabric.Canvas(canvasNode.current, {
+      width: 800,
+      height: 500,
+      backgroundColor: "#e9ebe7",
       preserveObjectStacking: true,
-      selection: true,
     });
-    fabricRef.current = canvas;
-
-    // Загружаем базовое изображение авто
-    fabric.FabricImage.fromURL(carImageUrl, { crossOrigin: "anonymous" }).then(
-      (img) => {
+    canvasRef.current = canvas;
+    const resize = () => {
+      const width = Math.min(holder.current?.clientWidth || 800, 800);
+      canvas.setDimensions(
+        { width: `${width}px`, height: `${(width * 500) / 800}px` },
+        { cssOnly: true },
+      );
+      canvas.calcOffset();
+    };
+    const observer = new ResizeObserver(resize);
+    observer.observe(holder.current);
+    resize();
+    fabric.FabricImage.fromURL(carImageUrl, { crossOrigin: "anonymous" })
+      .then((img) => {
+        if (!alive) return;
+        const scale = Math.min(800 / img.width, 500 / img.height);
         img.set({
-          left: 0,
-          top: 0,
+          originX: "left",
+          originY: "top",
+          left: (800 - img.width * scale) / 2,
+          top: (500 - img.height * scale) / 2,
+          scaleX: scale,
+          scaleY: scale,
           selectable: false,
           evented: false,
-          lockMovementX: true,
-          lockMovementY: true,
         });
-        img.scaleToWidth(CANVAS_WIDTH);
         canvas.backgroundImage = img;
-        canvas.renderAll();
-      },
-    );
-
-    // Слушаем изменения для callback
-    canvas.on("object:modified", emitChange);
-    canvas.on("object:moving", emitChange);
-    canvas.on("object:scaling", emitChange);
-
-    return () => {
-      canvas.off("object:modified", emitChange);
-      canvas.off("object:moving", emitChange);
-      canvas.off("object:scaling", emitChange);
-      canvas.dispose();
-      fabricRef.current = null;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [carImageUrl]);
-
-  // ─ Отрисовка зоны при смене слота ─────────────────────────
-
-  useEffect(() => {
-    const canvas = fabricRef.current;
-    if (!canvas) return;
-
-    // Удаляем старый прямоугольник зоны
-    if (zoneRectRef.current) {
-      canvas.remove(zoneRectRef.current);
-    }
-
-    const zone = SLOT_ZONES[selectedSlot];
-
-    // Рисуем контур активной зоны
-    const zoneRect = new fabric.Rect({
-      left: zone.x,
-      top: zone.y,
-      width: zone.width,
-      height: zone.height,
-      fill: "rgba(99, 102, 241, 0.08)",
-      stroke: "#6366F1",
-      strokeWidth: 2,
-      strokeDashArray: [6, 3],
-      rx: 6,
-      ry: 6,
-      selectable: false,
-      evented: false,
-      data: { type: "zone-indicator" },
+        canvas.requestRenderAll();
+        setReady(true);
+      })
+      .catch(() => {
+        if (alive)
+          setError(
+            t(
+              "Фотография не загрузилась. Выберите другую.",
+              "Фото жүктелмеді. Басқасын таңдаңыз.",
+              "Photo could not load. Choose another.",
+            ),
+          );
+      });
+    canvas.on("object:modified", () => {
+      const logo = logoRef.current;
+      if (logo) {
+        setAngle(Math.round(logo.angle));
+        setSize(Math.round(logo.getScaledWidth()));
+      }
+      emit();
     });
-
-    canvas.add(zoneRect);
-    // Fabric renders the canvas background below regular objects. Keep this
-    // outline above the photo and below any logo added afterward.
-
-    zoneRectRef.current = zoneRect;
-    canvas.renderAll();
-  }, [selectedSlot]);
-
-  // ─ Emit изменений ──────────────────────────────────────────
-
-  const emitChange = useCallback(() => {
-    const canvas = fabricRef.current;
-    if (!canvas || !onChange) return;
-
-    const fabricJson = canvas.toJSON();
-    const previewUrl = canvas.toDataURL({ format: "png", multiplier: 1 });
-    onChange({ fabricJson, previewUrl });
-  }, [onChange]);
-
-  // ─ Загрузка логотипа ───────────────────────────────────────
-
-  const handleFileUpload = useCallback(
-    async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (!file || !fabricRef.current) return;
-
-      const allowedTypes = [
-        "image/png",
-        "image/svg+xml",
-        "image/jpeg",
-        "image/webp",
-      ];
-      if (!allowedTypes.includes(file.type)) {
-        alert(
+    return () => {
+      alive = false;
+      observer.disconnect();
+      if (canvasRef.current === canvas) canvasRef.current = null;
+      void canvas.dispose();
+    };
+    // Language changes should not erase a user's artwork.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [carImageUrl, emit]);
+  async function addLogo(source: string) {
+    const canvas = canvasRef.current;
+    if (!canvas || !ready) return;
+    setBusy(true);
+    setError("");
+    try {
+      const loaded = await fabric.FabricImage.fromURL(source, {
+        crossOrigin: "anonymous",
+      });
+      const bitmap = document.createElement("canvas");
+      const ratio = Math.min(1, 800 / loaded.width, 800 / loaded.height);
+      bitmap.width = Math.max(1, Math.round(loaded.width * ratio));
+      bitmap.height = Math.max(1, Math.round(loaded.height * ratio));
+      const context = bitmap.getContext("2d");
+      if (!context) throw Error("CANVAS_UNAVAILABLE");
+      context.drawImage(loaded.getElement(), 0, 0, bitmap.width, bitmap.height);
+      const img = await fabric.FabricImage.fromURL(
+        bitmap.toDataURL("image/png"),
+      );
+      if (canvasRef.current !== canvas) return;
+      if (logoRef.current) canvas.remove(logoRef.current);
+      img.scaleToWidth(140);
+      img.set({
+        originX: "center",
+        originY: "center",
+        left: 470,
+        top: 300,
+        opacity: 0.9,
+        cornerColor: "#202720",
+        borderColor: "#202720",
+        cornerSize: 13,
+        transparentCorners: false,
+      });
+      canvas.add(img);
+      canvas.setActiveObject(img);
+      canvas.requestRenderAll();
+      logoRef.current = img;
+      setHasLogo(true);
+      setSize(140);
+      setAngle(0);
+      setOpacity(90);
+      emit();
+    } catch {
+      setError(
+        t(
+          "Не удалось открыть логотип.",
+          "Логотип ашылмады.",
+          "Could not open logo.",
+        ),
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function upload(file?: File) {
+    if (!file) return;
+    if (
+      !["image/png", "image/jpeg", "image/webp", "image/svg+xml"].includes(
+        file.type,
+      ) ||
+      file.size > 2 * 1024 * 1024
+    ) {
+      setError(
+        t(
+          "Выберите PNG, JPG, WebP или SVG до 2 МБ.",
+          "2 МБ-қа дейін PNG, JPG, WebP немесе SVG таңдаңыз.",
+          "Choose PNG, JPG, WebP or SVG up to 2 MB.",
+        ),
+      );
+      return;
+    }
+    if (file.type === "image/svg+xml") {
+      const raw = await file.text();
+      if (
+        /<script|<foreignObject|\bon\w+\s*=|(?:href|src)\s*=\s*["']\s*(?:https?:|\/\/|javascript:)/i.test(
+          raw,
+        )
+      ) {
+        setError(
           t(
-            "Поддерживаются PNG, SVG, JPG, WebP",
-            "PNG, SVG, JPG, WebP қолданылады",
-            "Supported formats: PNG, SVG, JPG, WebP",
+            "SVG должен содержать только графику без внешних ссылок.",
+            "SVG тек сыртқы сілтемесіз графикадан тұруы керек.",
+            "SVG must contain graphics only, without external links.",
           ),
         );
         return;
       }
-
-      setIsLoading(true);
-      setFileName(file.name);
-
-      const reader = new FileReader();
-      reader.onload = async (ev) => {
-        const dataUrl = ev.target?.result as string;
-        const canvas = fabricRef.current!;
-        const zone = SLOT_ZONES[selectedSlot];
-
-        // Удаляем предыдущий логотип
-        if (logoRef.current) {
-          canvas.remove(logoRef.current);
-          logoRef.current = null;
-        }
-
-        const img = await fabric.FabricImage.fromURL(dataUrl);
-
-        // Масштабируем логотип по ширине зоны (с отступом 10%)
-        const maxW = zone.width * 0.8;
-        const maxH = zone.height * 0.8;
-        const scaleX = maxW / img.width!;
-        const scaleY = maxH / img.height!;
-        const scale = Math.min(scaleX, scaleY);
-
-        img.set({
-          left: zone.x + (zone.width - img.width! * scale) / 2,
-          top: zone.y + (zone.height - img.height! * scale) / 2,
-          scaleX: scale,
-          scaleY: scale,
-          opacity: logoOpacity / 100,
-          cornerColor: "#6366F1",
-          cornerSize: 10,
-          transparentCorners: false,
-          borderColor: "#6366F1",
-          data: { type: "logo" },
-        });
-
-        // Ограничиваем перемещение зоной слота
-        img.on("moving", () => {
-          const obj = img;
-          const left = obj.left!;
-          const top = obj.top!;
-          const w = obj.getScaledWidth();
-          const h = obj.getScaledHeight();
-
-          obj.set({
-            left: Math.max(zone.x, Math.min(zone.x + zone.width - w, left)),
-            top: Math.max(zone.y, Math.min(zone.y + zone.height - h, top)),
-          });
-        });
-
-        canvas.add(img);
-        canvas.setActiveObject(img);
-        canvas.renderAll();
-
-        logoRef.current = img;
-        setHasLogo(true);
-        setIsLoading(false);
-        emitChange();
-      };
-
-      reader.readAsDataURL(file);
-      // Сброс input для повторной загрузки того же файла
-      e.target.value = "";
-    },
-    [selectedSlot, logoOpacity, emitChange],
-  );
-
-  // ─ Изменение прозрачности ──────────────────────────────────
-
-  const handleOpacityChange = useCallback(
-    (value: number[]) => {
-      const opacity = value[0];
-      setLogoOpacity(opacity);
-      if (logoRef.current && fabricRef.current) {
-        logoRef.current.set("opacity", opacity / 100);
-        fabricRef.current.renderAll();
-        emitChange();
-      }
-    },
-    [emitChange],
-  );
-
-  // ─ Сброс ───────────────────────────────────────────────────
-
-  const handleReset = useCallback(() => {
-    const canvas = fabricRef.current;
-    if (!canvas) return;
-
-    if (logoRef.current) {
-      canvas.remove(logoRef.current);
-      logoRef.current = null;
     }
+    const url = URL.createObjectURL(file);
+    try {
+      await addLogo(url);
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  }
+  function change(kind: "opacity" | "angle" | "size", value: number) {
+    const logo = logoRef.current;
+    if (!logo) return;
+    if (kind === "opacity") {
+      logo.set("opacity", value / 100);
+      setOpacity(value);
+    }
+    if (kind === "angle") {
+      logo.set("angle", value);
+      setAngle(value);
+    }
+    if (kind === "size") {
+      logo.scaleToWidth(value);
+      setSize(value);
+    }
+    logo.setCoords();
+    canvasRef.current?.requestRenderAll();
+    emit();
+  }
+  function reset() {
+    const canvas = canvasRef.current;
+    if (canvas && logoRef.current) canvas.remove(logoRef.current);
+    logoRef.current = null;
     setHasLogo(false);
-    setFileName(null);
-    setLogoOpacity(90);
+    canvas?.requestRenderAll();
+    emit();
+  }
+  function download() {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    canvas.discardActiveObject();
     canvas.renderAll();
-  }, []);
-
-  // ─ Удаление выделенного объекта ───────────────────────────
-
-  const handleDeleteSelected = useCallback(() => {
-    const canvas = fabricRef.current;
-    if (!canvas) return;
-    const active = canvas.getActiveObject();
-    if (active) {
-      canvas.remove(active);
-      if (logoRef.current === active) {
-        logoRef.current = null;
-        setHasLogo(false);
-        setFileName(null);
-      }
-      canvas.renderAll();
-      emitChange();
+    try {
+      canvas.toCanvasElement(1.5).toBlob((blob) => {
+        if (canvasRef.current !== canvas) return;
+        if (!blob) {
+          setError(
+            t(
+              "Не удалось создать PNG.",
+              "PNG жасау мүмкін болмады.",
+              "Could not create the PNG.",
+            ),
+          );
+          return;
+        }
+        const url = URL.createObjectURL(blob);
+        setExportUrl(url);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `ONROAD-${selectedSlot}.png`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      }, "image/png");
+    } catch {
+      setError(
+        t(
+          "Не удалось сохранить макет. Загрузите фото заново.",
+          "Макетті сақтау мүмкін болмады. Фотоны қайта жүктеңіз.",
+          "Could not export the mockup. Reload the photo.",
+        ),
+      );
     }
-  }, [emitChange]);
-
-  // ─ Скачать превью ─────────────────────────────────────────
-
-  const handleDownloadPreview = useCallback(() => {
-    const canvas = fabricRef.current;
-    if (!canvas) return;
-    const dataUrl = canvas.toDataURL({ format: "png", multiplier: 2 });
-    const link = document.createElement("a");
-    link.download = `brandmycar-mockup-${selectedSlot.toLowerCase()}.png`;
-    link.href = dataUrl;
-    link.click();
-  }, [selectedSlot]);
-
-  // ─ Zoom ───────────────────────────────────────────────────
-
-  const handleZoom = useCallback(
-    (direction: "in" | "out") => {
-      const canvas = fabricRef.current;
-      const obj = canvas?.getActiveObject();
-      if (!obj || !canvas) return;
-      const factor = direction === "in" ? 1.1 : 0.9;
-      obj.scale((obj.scaleX ?? 1) * factor);
-      canvas.renderAll();
-      emitChange();
-    },
-    [emitChange],
-  );
-
-  // ─── Render ────────────────────────────────────────────────
-
+  }
   return (
-    <div className={cn("flex flex-col gap-4", className)}>
-      {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-2">
-        {/* Upload button */}
-        <label className="cursor-pointer">
+    <div className={`logo-studio ${className}`}>
+      <div className="studio-toolbar">
+        <label className="outline-button">
+          {t("Загрузить логотип", "Логотип жүктеу", "Upload logo")}
           <input
             type="file"
-            accept=".png,.svg,.jpg,.jpeg,.webp"
-            className="hidden"
-            onChange={handleFileUpload}
+            accept="image/png,image/jpeg,image/webp,image/svg+xml"
+            disabled={!ready || busy}
+            onChange={(e) => {
+              void upload(e.target.files?.[0]);
+              e.target.value = "";
+            }}
           />
-          <Button variant="outline" size="sm" asChild>
-            <span className="flex items-center gap-2">
-              <Upload className="h-4 w-4" />
-              {hasLogo
-                ? t("Заменить логотип", "Логотипті ауыстыру", "Replace logo")
-                : t("Загрузить логотип", "Логотип жүктеу", "Upload logo")}
-            </span>
-          </Button>
         </label>
-
-        {/* Slot badge */}
-        <Badge variant="secondary" className="font-normal">
-          {t("Зона", "Аймақ", "Placement")}: {t(...SLOT_NAMES[selectedSlot])}
-        </Badge>
-
-        {fileName && (
-          <span className="text-xs text-muted-foreground truncate max-w-[160px]">
-            {fileName}
-          </span>
-        )}
-
-        <div className="ml-auto flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => handleZoom("in")}
-            disabled={!hasLogo}
-            title={t("Увеличить", "Үлкейту", "Zoom in")}
-          >
-            <ZoomIn className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => handleZoom("out")}
-            disabled={!hasLogo}
-            title={t("Уменьшить", "Кішірейту", "Zoom out")}
-          >
-            <ZoomOut className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleDeleteSelected}
-            disabled={!hasLogo}
-            title={t(
-              "Удалить выбранный объект",
-              "Таңдалған нысанды жою",
-              "Delete selected object",
-            )}
-          >
-            <Trash2 className="h-4 w-4 text-destructive" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleReset}
-            disabled={!hasLogo}
-            title={t("Сбросить", "Қалпына келтіру", "Reset")}
-          >
-            <RotateCcw className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleDownloadPreview}
-            className="gap-2"
-          >
-            <Download className="h-4 w-4" />
-            {t("Скачать", "Жүктеу", "Download")}
-          </Button>
-        </div>
+        <button
+          type="button"
+          className="outline-button"
+          disabled={!ready || busy}
+          onClick={() => void addLogo("/onroad-logo-dark.svg")}
+        >
+          {t("Пример ONROAD", "ONROAD үлгісі", "Try ONROAD")}
+        </button>
+        <button
+          type="button"
+          className="text-button"
+          disabled={!hasLogo}
+          onClick={reset}
+        >
+          {t("Удалить логотип", "Логотипті жою", "Remove logo")}
+        </button>
+        <button
+          type="button"
+          className="solid-button"
+          disabled={!ready || busy}
+          onClick={download}
+        >
+          {t("Скачать макет", "Макетті жүктеу", "Download mockup")}
+        </button>
       </div>
-
-      {/* Canvas container */}
-      <div className="relative rounded-xl overflow-hidden border border-border shadow-sm bg-gray-50">
-        {isLoading && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/60 backdrop-blur-sm">
-            <div className="flex flex-col items-center gap-2">
-              <div className="h-8 w-8 animate-spin rounded-full border-4 border-lime-300 border-t-transparent" />
-              <span className="text-sm text-muted-foreground">
-                {t("Загрузка…", "Жүктелуде…", "Loading…")}
-              </span>
-            </div>
-          </div>
-        )}
-        <canvas
-          ref={canvasElRef}
-          className="block max-w-full"
-          style={{ touchAction: "none" }}
-        />
-      </div>
-
-      {/* Opacity slider */}
-      {hasLogo && (
-        <div className="flex items-center gap-3">
-          <span className="text-sm text-muted-foreground w-32 shrink-0">
-            {t("Прозрачность", "Мөлдірлік", "Opacity")}: {logoOpacity}%
-          </span>
-          <Slider
-            min={10}
-            max={100}
-            step={1}
-            value={[logoOpacity]}
-            onValueChange={handleOpacityChange}
-            className="flex-1"
-          />
-        </div>
-      )}
-
-      {/* Hint */}
-      {!hasLogo && (
-        <p className="text-center text-sm text-muted-foreground">
+      {exportUrl && (
+        <p role="status" className="fine-print">
           {t(
-            "Загрузите логотип PNG или SVG.",
-            "PNG немесе SVG логотипін жүктеңіз.",
-            "Upload a PNG or SVG logo.",
-          )}
-          <br />
-          {t(
-            "Перетаскивайте и масштабируйте прямо на фото.",
-            "Фотода жылжытып, өлшемін өзгертіңіз.",
-            "Drag and resize directly on the photo.",
-          )}
+            "PNG готов. Если скачивание не началось:",
+            "PNG дайын. Жүктеу басталмаса:",
+            "PNG is ready. If the download did not start:",
+          )}{" "}
+          <a href={exportUrl} target="_blank" rel="noreferrer">
+            {t("Открыть макет", "Макетті ашу", "Open mockup")}
+          </a>
         </p>
       )}
+      <p className="fine-print">
+        {t("Выбранная зона", "Таңдалған аймақ", "Selected placement")}:{" "}
+        <strong>{t(...SLOT_NAMES[selectedSlot])}</strong>.{" "}
+        {t(
+          "Выберите подходящий ракурс и разместите логотип вручную на кузове.",
+          "Тиісті ракурсты таңдап, логотипті кузовқа қолмен орналастырыңыз.",
+          "Choose the matching view and position the logo manually on the body.",
+        )}
+      </p>
+      {error && (
+        <p className="form-error" role="alert">
+          {error}
+        </p>
+      )}
+      <div
+        className="studio-canvas"
+        ref={holder}
+        aria-label={t("Редактор макета", "Макет редакторы", "Mockup editor")}
+      >
+        <canvas ref={canvasNode} />
+      </div>
+      {busy && <p role="status">{t("Загрузка…", "Жүктелуде…", "Loading…")}</p>}
+      {hasLogo && (
+        <div className="studio-sliders">
+          <label>
+            {t("Размер", "Өлшем", "Size")}: {size}px
+            <input
+              type="range"
+              min={25}
+              max={600}
+              value={size}
+              onChange={(e) => change("size", +e.target.value)}
+            />
+          </label>
+          <label>
+            {t("Поворот", "Бұрылу", "Rotation")}: {angle}°
+            <input
+              type="range"
+              min={-180}
+              max={180}
+              value={angle}
+              onChange={(e) => change("angle", +e.target.value)}
+            />
+          </label>
+          <label>
+            {t("Прозрачность", "Мөлдірлік", "Opacity")}: {opacity}%
+            <input
+              type="range"
+              min={10}
+              max={100}
+              value={opacity}
+              onChange={(e) => change("opacity", +e.target.value)}
+            />
+          </label>
+        </div>
+      )}
+      <p className="fine-print">
+        {t(
+          "Перетащите логотип мышью или пальцем. Угловые маркеры меняют размер. Макет предварительный — размеры и монтаж согласуются отдельно.",
+          "Логотипті тышқанмен немесе саусақпен жылжытыңыз. Бұрыштық белгілер өлшемді өзгертеді. Бұл алдын ала макет, өлшемдер мен орнату бөлек келісіледі.",
+          "Drag with a mouse or finger. Corner handles resize the logo. This is a draft; final dimensions and installation are agreed separately.",
+        )}
+      </p>
     </div>
   );
 }
-
-export default LogoConfigurator;

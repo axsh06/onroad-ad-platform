@@ -1,4 +1,5 @@
 "use client";
+import { OwnerActivity } from "@/components/platform/OwnerActivity";
 import { ErrorMessage } from "@/components/platform/ErrorMessage";
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
@@ -74,6 +75,7 @@ export default function SellerDashboard() {
           {t("Добавить автомобиль", "Автомобиль қосу", "Add a car")}
         </Link>
       </div>
+      <OwnerActivity />
       {error && (
         <p className="form-error">{<ErrorMessage message={error} />}</p>
       )}

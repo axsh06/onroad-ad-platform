@@ -25,6 +25,7 @@ export function Header({ dark = false }: { dark?: boolean }) {
         <Link href="/planner">
           {t("Калькулятор", "Калькулятор", "Planner")}
         </Link>
+        <Link href="/studio">{t("Примерка", "Сынау", "Design studio")}</Link>
         <Link href="/home#faq">FAQ</Link>
       </nav>
       <div className="header-controls">

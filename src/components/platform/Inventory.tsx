@@ -1,6 +1,8 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { PLACEMENT_TYPES, SLOT_NAMES } from "@/lib/slots";
+import { CAR_CLASSES } from "@/lib/vehicle-options";
 import { useLocale } from "./Locale";
 export type CarItem = {
   id: string;
@@ -10,6 +12,8 @@ export type CarItem = {
   city: string;
   class: string;
   color: string;
+  weeklyKm: number;
+  monthlyReach: number;
   photoUrls: string[];
   modelUrl?: string | null;
   modelHotspots?: Record<string, { position: string; normal: string }>;
@@ -26,7 +30,17 @@ export function useCars({
   search = "",
   carClass = "",
   limit = 24,
-}: { search?: string; carClass?: string; limit?: number } = {}) {
+  slot = "",
+  sort = "recommended",
+  ids,
+}: {
+  search?: string;
+  carClass?: string;
+  limit?: number;
+  slot?: string;
+  sort?: string;
+  ids?: string;
+} = {}) {
   const [cars, setCars] = useState<CarItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -43,6 +57,9 @@ export function useCars({
       });
       if (search.trim()) query.set("q", search.trim());
       if (carClass) query.set("class", carClass);
+      if (slot) query.set("slot", slot);
+      query.set("sort", sort);
+      if (ids !== undefined) query.set("ids", ids);
       const response = await fetch(`/api/cars?${query}`, { cache: "no-store" });
       if (!response.ok) throw new Error("CATALOG_UNAVAILABLE");
       return response.json() as Promise<{
@@ -50,7 +67,7 @@ export function useCars({
         pagination: { pages: number };
       }>;
     },
-    [search, carClass, limit],
+    [search, carClass, limit, slot, sort, ids],
   );
   const reload = useCallback(async () => {
     const current = ++version.current;
@@ -135,12 +152,58 @@ export function Inventory({
   const [search, setSearch] = useState("");
   const [query, setQuery] = useState("");
   const [carClass, setClass] = useState("");
+  const [slot, setSlot] = useState("");
+  const [sort, setSort] = useState("recommended");
+  const [favorites, setFavorites] = useState<string[]>([]);
+  const [favoritesOnly, setFavoritesOnly] = useState(false);
+  useEffect(() => {
+    const read = () => {
+      try {
+        const saved = JSON.parse(
+          localStorage.getItem("onroad-favorites") || "[]",
+        );
+        if (Array.isArray(saved))
+          setFavorites(
+            saved
+              .filter((x): x is string => typeof x === "string")
+              .slice(0, 200),
+          );
+      } catch {}
+    };
+    read();
+    window.addEventListener("storage", read);
+    return () => window.removeEventListener("storage", read);
+  }, []);
+  function toggleFavorite(id: string) {
+    const next = favorites.includes(id)
+      ? favorites.filter((x) => x !== id)
+      : [...favorites, id].slice(-200);
+    setFavorites(next);
+    try {
+      localStorage.setItem("onroad-favorites", JSON.stringify(next));
+    } catch {}
+  }
+  const reset = () => {
+    setSearch("");
+    setQuery("");
+    setClass("");
+    setSlot("");
+    setSort("recommended");
+    setFavoritesOnly(false);
+  };
   useEffect(() => {
     const timer = setTimeout(() => setQuery(search), 250);
     return () => clearTimeout(timer);
   }, [search]);
   const { cars, loading, error, reload, hasMore, loadMore, loadingMore } =
-    useCars({ search: query, carClass, limit: limit || 24 });
+    useCars({
+      search: query,
+      carClass,
+      slot,
+      sort,
+      ids: favoritesOnly ? favorites.join(",") : undefined,
+      limit: limit || 24,
+    });
   const filtered = cars.slice(0, limit);
   return (
     <div>
@@ -164,10 +227,54 @@ export function Inventory({
             <option value="">
               {t("Все классы", "Барлық класс", "All classes")}
             </option>
-            {["PREMIUM", "LUXURY", "SPORT", "SUV", "SUPERCAR"].map((v) => (
-              <option key={v}>{v}</option>
+            {Object.entries(CAR_CLASSES).map(([key, labels]) => (
+              <option key={key} value={key}>
+                {t(...labels)}
+              </option>
             ))}
           </select>
+          <select
+            aria-label={t("Зона размещения", "Орналастыру аймағы", "Placement")}
+            value={slot}
+            onChange={(e) => setSlot(e.target.value)}
+          >
+            <option value="">
+              {t("Все зоны", "Барлық аймақ", "All placements")}
+            </option>
+            {PLACEMENT_TYPES.map((z) => (
+              <option key={z} value={z}>
+                {t(...SLOT_NAMES[z])}
+              </option>
+            ))}
+          </select>
+          <select
+            aria-label={t("Сортировка", "Сұрыптау", "Sort")}
+            value={sort}
+            onChange={(e) => setSort(e.target.value)}
+          >
+            <option value="recommended">
+              {t("Рекомендуемые", "Ұсынылған", "Recommended")}
+            </option>
+            <option value="newest">
+              {t("Новые объявления", "Жаңа хабарландырулар", "Newest listings")}
+            </option>
+            <option value="year">
+              {t("Новее год выпуска", "Жаңарақ жыл", "Newest model year")}
+            </option>
+            <option value="zones">
+              {t("Больше зон", "Көбірек аймақ", "More placements")}
+            </option>
+          </select>
+          <button
+            className="favorites-filter"
+            aria-pressed={favoritesOnly}
+            onClick={() => setFavoritesOnly(!favoritesOnly)}
+          >
+            {t("Избранное", "Таңдаулылар", "Favorites")} ({favorites.length})
+          </button>
+          <button onClick={reset}>
+            {t("Сбросить", "Қалпына келтіру", "Reset")}
+          </button>
           <button onClick={reload}>
             {t("Обновить", "Жаңарту", "Refresh")}
           </button>
@@ -195,7 +302,7 @@ export function Inventory({
       ) : !filtered.length ? (
         <div className="empty-state">
           <h3>
-            {search || carClass
+            {search || carClass || slot || favoritesOnly
               ? t("Ничего не найдено", "Ештеңе табылмады", "No matching cars")
               : t(
                   "Подборка формируется",
@@ -210,6 +317,15 @@ export function Inventory({
               "Real owner photos appear here after ONROAD approval.",
             )}
           </p>
+          {(search || carClass || slot || favoritesOnly) && (
+            <button className="outline-button" onClick={reset}>
+              {t(
+                "Сбросить фильтры",
+                "Сүзгілерді қалпына келтіру",
+                "Reset filters",
+              )}
+            </button>
+          )}
           <Link href="/seller/register">
             {t("Предложить автомобиль", "Автомобиль ұсыну", "List your car")}
           </Link>
@@ -243,8 +359,30 @@ export function Inventory({
                     {car.make} {car.model}
                   </h3>
                   <p>
-                    {car.year} · {t("Астана", "Астана", "Astana")}
+                    {car.year} · {t("Астана", "Астана", "Astana")} ·{" "}
+                    {CAR_CLASSES[car.class]
+                      ? t(...CAR_CLASSES[car.class])
+                      : car.class}
                   </p>
+                  <p>
+                    {car.adSlots.filter((s) => s.isAvailable).length}{" "}
+                    {t("свободных зон", "бос аймақ", "available placements")}
+                    {car.weeklyKm > 0
+                      ? ` · ${car.weeklyKm} ${t("км/нед", "км/апта", "km/week")}`
+                      : ""}
+                  </p>
+                  <div className="car-placement-tags">
+                    {car.adSlots.map((s) => (
+                      <span
+                        key={s.id}
+                        className={s.isAvailable ? "" : "unavailable"}
+                      >
+                        {SLOT_NAMES[s.slotType]
+                          ? t(...SLOT_NAMES[s.slotType])
+                          : s.label}
+                      </span>
+                    ))}
+                  </div>
                   <div>
                     <span>
                       {prices.length
@@ -271,23 +409,38 @@ export function Inventory({
                 </div>
               </>
             );
-            return select ? (
-              <button
-                key={car.id}
-                className={`real-car-card ${selected?.includes(car.id) ? "selected" : ""}`}
-                aria-pressed={selected?.includes(car.id)}
-                onClick={() => select(car.id)}
-              >
-                {card}
-              </button>
-            ) : (
-              <Link
-                key={car.id}
-                href={`/catalog/${car.id}`}
-                className="real-car-card"
-              >
-                {card}
-              </Link>
+            return (
+              <div className="vehicle-card-wrap" key={car.id}>
+                {select ? (
+                  <button
+                    className={`real-car-card ${selected?.includes(car.id) ? "selected" : ""}`}
+                    aria-pressed={selected?.includes(car.id)}
+                    onClick={() => select(car.id)}
+                  >
+                    {card}
+                  </button>
+                ) : (
+                  <Link href={`/catalog/${car.id}`} className="real-car-card">
+                    {card}
+                  </Link>
+                )}
+                <button
+                  className="favorite-car"
+                  aria-label={
+                    favorites.includes(car.id)
+                      ? t(
+                          "Убрать из избранного",
+                          "Таңдаулыдан алу",
+                          "Remove favorite",
+                        )
+                      : t("В избранное", "Таңдаулыға қосу", "Save favorite")
+                  }
+                  aria-pressed={favorites.includes(car.id)}
+                  onClick={() => toggleFavorite(car.id)}
+                >
+                  {favorites.includes(car.id) ? "♥" : "♡"}
+                </button>
+              </div>
             );
           })}
         </div>

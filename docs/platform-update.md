@@ -2,7 +2,7 @@
 
 ## User workflows
 
-- Public routes: `/home`, `/catalog`, `/planner`. Old `/index.html`, `/cars.html`, `/campaign.html` redirect to the new routes.
+- Public routes: `/home`, `/catalog`, `/planner`, `/studio`. Old `/index.html`, `/cars.html`, `/campaign.html` redirect to the new routes.
 - Shared RU / KK / EN locale is stored in a SameSite cookie, used by server rendering and synced across browser tabs. Public pages, forms and role dashboards share the setting.
 - Astana is the active city. Almaty and Shymkent are marked coming soon. New vehicle submissions are restricted to Astana on the server.
 - Owner: account → email verification → `/dashboard/add-car` → PENDING → manual review. NEEDS_INFO and REJECTED applications support additional photos and a reply, returning to PENDING.
@@ -25,7 +25,7 @@ RateBucket records are expiry-tagged; expired rows may be periodically removed b
 
 ## Assets and sources
 
-- Mercedes-Benz S-Class photograph supplied by the project owner, copied unchanged to `public/photos/mercedes-s-class.png`. ONROAD placement is an HTML/SVG overlay, explicitly labelled as a mockup. The user must hold publishing rights to the photograph before commercial use.
+- Mercedes-Benz S-Class photograph supplied by the project owner, copied unchanged to `public/photos/mercedes-s-class.png`. Used as the studio example and supporting photo; not a real catalog listing. The homepage now uses a generated W223 brand visualization at `public/photos/hero-w223-astana.png`, following the requested original composition. See `docs/design/visual-direction.md` for the exact prompt. The hero is not an interactive W223 model.
 - Demonstration 3D asset: Car Concept by Eric Chadwick, Darmstadt Graphics Group GmbH (2024), distributed in Khronos glTF Sample Assets and based on a public-domain model by Unity Fan. Source: https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/CarConcept . License: CC BY 4.0; see `public/models/LICENSE.md`. Demo is not presented as an individual owner's exact car.
 - Viewer: @google/model-viewer, https://modelviewer.dev/examples/annotations/ . Model loading is deferred until requested except for assigned vehicle models. Reduced motion disables rotation and page animations.
 - Legal FAQ reference: Kazakhstan Law on Advertising, Article 12, https://adilet.zan.kz/rus/docs/Z030000508_ . Legal pages remain prototype drafts, with operator details and commercial compliance review outstanding.

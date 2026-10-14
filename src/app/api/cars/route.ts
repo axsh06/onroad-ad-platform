@@ -41,9 +41,22 @@ export async function GET(req: NextRequest) {
       Math.max(1, Math.floor(Number(searchParams.get("limit")) || 12)),
     );
     const skip = (page - 1) * limit;
+    const requestedIds = searchParams.has("ids")
+      ? (searchParams.get("ids") || "").split(",").filter(Boolean).slice(0, 200)
+      : null;
+    const sort = searchParams.get("sort");
+    const orderBy: Prisma.CarOrderByWithRelationInput[] =
+      sort === "newest"
+        ? [{ createdAt: "desc" }, { id: "asc" }]
+        : sort === "year"
+          ? [{ year: "desc" }, { id: "asc" }]
+          : sort === "zones"
+            ? [{ adSlots: { _count: "desc" } }, { id: "asc" }]
+            : [{ monthlyReach: "desc" }, { id: "asc" }];
 
     const whereClause: Prisma.CarWhereInput = {
       status: "APPROVED" as const,
+      ...(requestedIds ? { id: { in: requestedIds } } : {}),
       ...(city
         ? { city: { contains: city, mode: "insensitive" as const } }
         : {}),
@@ -103,7 +116,7 @@ export async function GET(req: NextRequest) {
             select: { name: true, avatarUrl: true },
           },
         },
-        orderBy: [{ monthlyReach: "desc" }, { id: "asc" }],
+        orderBy,
         skip,
         take: limit,
       }),
@@ -143,6 +156,7 @@ const CreateCarSchema = z.object({
   year: z.number().int().min(2000).max(new Date().getFullYear()),
   class: z.nativeEnum(CarClass),
   color: z.string().min(1).max(30),
+  weeklyKm: z.number().int().min(0).max(10000).default(0),
   plateNumber: z.string().min(4).max(10).optional(),
   city: z.literal("Астана"),
   districts: z.array(z.string()).min(1).max(10),

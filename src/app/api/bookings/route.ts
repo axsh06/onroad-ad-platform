@@ -14,6 +14,7 @@ import {
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { z } from "zod";
+import { BookingStatus, Prisma } from "@prisma/client";
 
 // ─── Validation Schema ───────────────────────────────────────────
 
@@ -215,11 +216,41 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = new URL(req.url);
     const status = searchParams.get("status");
-    const page = Math.max(1, Number(searchParams.get("page") ?? "1"));
-    const limit = Math.min(
-      50,
-      Math.max(1, Number(searchParams.get("limit") ?? "10")),
-    );
+    if (
+      status &&
+      !Object.values(BookingStatus).includes(status as BookingStatus)
+    )
+      return NextResponse.json(
+        { error: "Некорректный статус." },
+        { status: 400 },
+      );
+    const group = searchParams.get("group");
+    const statusFilter: Prisma.BookingWhereInput =
+      group === "active"
+        ? {
+            status: { in: ["PENDING", "CONFIRMED", "APPROVED", "ACTIVE"] },
+            endDate: { gt: new Date() },
+          }
+        : group === "history"
+          ? {
+              OR: [
+                { status: { in: ["COMPLETED", "CANCELLED"] } },
+                { endDate: { lte: new Date() } },
+              ],
+            }
+          : status
+            ? { status: status as BookingStatus }
+            : {};
+    const rawPage = Number(searchParams.get("page"));
+    const page =
+      Number.isSafeInteger(rawPage) && rawPage > 0 && rawPage < 100000
+        ? rawPage
+        : 1;
+    const rawLimit = Number(searchParams.get("limit") ?? "10");
+    const limit =
+      Number.isSafeInteger(rawLimit) && rawLimit > 0
+        ? Math.min(50, rawLimit)
+        : 10;
     const skip = (page - 1) * limit;
 
     // Для Seller — получаем бронирования своих авто
@@ -228,11 +259,11 @@ export async function GET(req: NextRequest) {
       session.user.role === "SELLER"
         ? {
             slot: { car: { ownerId: session.user.id } },
-            ...(status ? { status: status as never } : {}),
+            ...statusFilter,
           }
         : {
             buyerId: session.user.id,
-            ...(status ? { status: status as never } : {}),
+            ...statusFilter,
           };
 
     const [bookings, total] = await Promise.all([
