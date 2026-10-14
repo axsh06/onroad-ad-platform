@@ -34,6 +34,28 @@ RateBucket records are expiry-tagged; expired rows may be periodically removed b
 
 ## Scope boundaries
 
+### Porsche 3D decal studio — 14 October 2026
+
+`/studio` opens the owner-supplied Porsche 911 Carrera 4S in a browser-only
+Three.js editor. The four preview areas are left door, right door, hood and rear
+window. Decals are projected onto the actual body/glass geometry and clipped to
+the selected area. This does not add a rear-window slot to bookable inventory.
+
+Upload PNG, JPEG or WebP (up to 8 MB / 8192 px), with transparent PNG/WebP
+recommended. Images are resized locally to at most 1536 px and never uploaded.
+Up to 12 decals can be added, selected, moved within their panel, resized,
+rotated, faded, deleted, undone or redone. The camera supports orbit, zoom and
+zone views. PNG export uses the current camera and includes model attribution.
+The source model and CC BY-SA 4.0 attribution are documented in
+`public/models/README.md`. UI text supports RU, KK and EN.
+
+The existing photo editor remains available in the Photo preview tab. Switching
+tabs preserves the current session in each editor, but refreshing/leaving the
+page clears the 3D design. Download the PNG first. This is a visual mockup;
+physical sizing, installation and rear-window suitability require separate
+agreement. The approximately 24 MB model loads on opening the studio; a retry
+and photo alternative are offered if WebGL or loading is unavailable.
+
 No payment processing, bank transfer, guaranteed earnings or automatic creation of a matching 3D vehicle model. Actual model files must be provided by an administrator with suitable usage rights. Uploaded model coordinates are configured manually. Availability and dates still require campaign approval.
 
 ## Dependencies

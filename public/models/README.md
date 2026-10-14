@@ -21,3 +21,22 @@ it is not added as a bookable inventory slot. Existing rear-body inventory and
 administrator-defined vehicle hotspots retain their original meaning.
 
 The previous Car Concept model is no longer distributed in this project.
+
+# Porsche 911 Carrera 4S — 3D design studio
+
+- File: `porsche-911-carrera-4s.glb`
+- Creator: [Karol Miklas](https://sketchfab.com/karolmiklas)
+- Source: https://sketchfab.com/3d-models/free-porsche-911-carrera-4s-d01b254483794de3819786d93e0e1ebf
+- License: [Creative Commons Attribution-ShareAlike 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
+
+The project owner supplied this model on 2026-10-14. Its embedded `asset.extras`
+contains the creator, source and license. The distributed GLB is unchanged.
+The studio grounds the scene, replaces its baked ground-shadow plane with a
+rendered shadow, and adds separate projected decal geometry at runtime. Users
+can decorate the two doors, hood and rear window. The model does not represent
+a vehicle offered in the catalog; the creator does not endorse ONROAD.
+
+The studio includes source and license links. Exported PNGs include creator and
+license attribution. Retain that attribution when sharing model-based exports,
+and follow the model license's ShareAlike terms for adaptations. User-uploaded
+artwork is processed locally; no rights to that artwork are asserted by ONROAD.
