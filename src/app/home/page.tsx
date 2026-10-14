@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Header, Footer } from "@/components/platform/Shell";
 import { useLocale } from "@/components/platform/Locale";
 import { Inventory } from "@/components/platform/Inventory";
@@ -315,10 +316,15 @@ export default function HomePage() {
         </section>
         <section className="movement-section reveal" id="for-brands">
           <div className="movement-photo">
-            <img
-              src="/photos/mercedes-s-class.png"
-              alt="Mercedes-Benz S-Class"
-              loading="lazy"
+            <Image
+              src="/photos/range-rover-onroad.png"
+              alt={t(
+                "Range Rover с логотипом ONROAD на передней двери",
+                "Алдыңғы есігінде ONROAD логотипі бар Range Rover",
+                "Range Rover with the ONROAD logo on its front door",
+              )}
+              fill
+              sizes="(max-width: 760px) 100vw, 50vw"
             />
             <span>
               ONROAD / {t("В ВАШЕМ ГОРОДЕ", "СІЗДІҢ ҚАЛАҢЫЗДА", "IN YOUR CITY")}

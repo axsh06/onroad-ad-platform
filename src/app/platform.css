@@ -523,29 +523,32 @@
 .movement-section {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  min-height: 600px;
+  min-height: clamp(450px, 41vw, 600px);
 }
 .movement-photo {
   position: relative;
   overflow: hidden;
+  background: #333731;
 }
 .movement-photo > img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: 70% center;
+  object-position: 10% bottom;
 }
 .movement-photo > span {
   position: absolute;
-  bottom: 25px;
-  left: 25px;
-  background: #171c19dc;
+  top: 28px;
+  left: 28px;
+  background: #171c19e8;
+  border: 1px solid #ffffff26;
   color: white;
   font-size: 10px;
+  letter-spacing: 0.06em;
   padding: 10px 14px;
 }
 .movement-section > div:last-child {
-  padding: 95px 14%;
+  padding: clamp(60px, 6.5vw, 95px) 14%;
   background: white;
 }
 .movement-section p:not(.eyebrow) {
@@ -1019,6 +1022,16 @@
   }
 }
 @media (max-width: 1050px) {
+  .movement-section {
+    grid-template-columns: 1fr;
+    min-height: 0;
+  }
+  .movement-photo {
+    aspect-ratio: 16 / 10;
+  }
+  .movement-section > div:last-child {
+    padding: 60px 7%;
+  }
   .platform-header {
     gap: 18px;
   }
@@ -1166,7 +1179,13 @@
     height: 300px;
   }
   .movement-photo {
-    height: 330px;
+    height: auto;
+    aspect-ratio: 4 / 3;
+  }
+  .movement-photo > span {
+    top: 20px;
+    left: 20px;
+    font-size: 9px;
   }
   .movement-section {
     gap: 0;
