@@ -23,6 +23,7 @@ enum Role {
 enum CarStatus {
   PENDING     // Ожидает модерации
   APPROVED    // Одобрена
+  NEEDS_INFO
   REJECTED    // Отклонена
 }
 
@@ -35,6 +36,9 @@ enum CarClass {
 }
 
 enum SlotType {
+  LEFT_DOOR
+  RIGHT_DOOR
+  REAR_BODY
   HOOD              // Капот
   FRONT_DOORS       // Передние двери
   REAR_DOORS        // Задние двери
@@ -76,6 +80,10 @@ model User {
   id            String    @id @default(cuid())
   email         String    @unique
   emailVerified DateTime?
+  verificationRequired Boolean @default(false)
+  locale String @default("ru")
+  emailChallenge EmailChallenge?
+  carViews CarView[]
   phone         String?   @unique
   name          String
   companyName   String?
@@ -152,6 +160,11 @@ model Car {
 
   // Moderation
   status          CarStatus @default(PENDING)
+  modelAssetId String? @unique @db.Uuid
+  modelAsset MediaAsset? @relation("CarModel", fields: [modelAssetId], references: [id], onDelete: SetNull)
+  modelHotspots Json?
+  moderationHistory ModerationMessage[]
+  views CarView[]
   moderationNote  String?   // Комментарий администратора
 
   // Stats (обновляются через cron / триггеры)
@@ -296,10 +309,45 @@ model MediaAsset {
   car           Car?     @relation(fields: [carId], references: [id], onDelete: SetNull)
   storageKey    String   @unique
   storageDriver String
+  kind String @default("PHOTO")
+  contentType String @default("image/jpeg")
+  modelForCar Car? @relation("CarModel")
   sizeBytes     Int
   createdAt     DateTime @default(now())
 
   @@index([ownerId, carId])
   @@index([carId])
   @@map("media_assets")
+}
+
+model EmailChallenge {
+  userId String @id
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  codeHash String
+  expiresAt DateTime
+  attempts Int @default(0)
+  sentAt DateTime @default(now())
+}
+model RateBucket {
+  key String @id
+  count Int @default(1)
+  expiresAt DateTime
+}
+model ModerationMessage {
+  id String @id @default(cuid())
+  carId String
+  car Car @relation(fields: [carId], references: [id], onDelete: Cascade)
+  status CarStatus
+  body String
+  emailStatus String @default("PENDING")
+  createdAt DateTime @default(now())
+  @@index([carId, createdAt])
+}
+model CarView {
+  carId String
+  car Car @relation(fields: [carId], references: [id], onDelete: Cascade)
+  buyerId String
+  buyer User @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+  viewedAt DateTime @default(now())
+  @@id([carId, buyerId])
 }

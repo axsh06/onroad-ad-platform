@@ -1,5 +1,4 @@
-import Link from 'next/link'
-
-export default function TermsPage() {
-  return <main className="min-h-screen bg-[#080a07] px-5 py-10 text-white"><article className="mx-auto max-w-3xl"><Link href="/index.html" className="text-sm text-lime-300">← ONROAD</Link><h1 className="mt-6 text-3xl font-bold">Условия использования</h1><p className="mt-5 rounded-xl border border-amber-300/20 bg-amber-300/5 p-4 text-sm text-amber-100">Черновик для разработки. До публичного запуска условия должны быть дополнены реквизитами оператора и проверены юристом в Казахстане.</p><div className="mt-6 space-y-4 text-sm leading-6 text-zinc-300"><p>ONROAD помогает компаниям и владельцам автомобилей направлять и рассматривать заявки на рекламное размещение. Отправка заявки сама по себе не заключает договор и не гарантирует одобрение автомобиля, кампании или выбранной зоны.</p><p>До начала размещения стороны должны согласовать макет, цену, сроки, монтаж и демонтаж, подтверждение выполнения, порядок оплаты и возможные компенсации в отдельном договоре или заказе.</p><p>Информация о машинах, доступности зон, охвате и стоимости может быть демонстрационной. Фактические условия подтверждаются командой ONROAD и участниками до заключения сделки.</p><p>Оператор должен указать юридические реквизиты, контакты, порядок рассмотрения претензий, ответственность сторон и правила отмены до публикации настоящих условий.</p></div></article></main>
+import { LegalPage } from "@/components/platform/LegalPage";
+export default function Page() {
+  return <LegalPage />;
 }

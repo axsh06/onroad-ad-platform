@@ -1,58 +1,261 @@
-'use client'
-
-import { useEffect, useState } from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
-import { useParams } from 'next/navigation'
-import { ArrowLeft, MapPin } from 'lucide-react'
-import { LogoConfigurator, type SlotType } from '@/components/canvas/LogoConfigurator'
-import { CheckoutForm } from '@/components/checkout/CheckoutForm'
-
-type Slot = { id: string; slotType: SlotType; label: string; priceWeekly: number; priceMonthly: number; isAvailable: boolean }
-type Car = { id: string; make: string; model: string; year: number; color: string; city: string; photoUrls: string[]; monthlyReach: number; weeklyKm: number; adSlots: Slot[] }
-
-export default function CarDetailPage() {
-  const params = useParams<{ id: string }>()
-  const [car, setCar] = useState<Car | null>(null)
-  const [slot, setSlot] = useState<Slot | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [message, setMessage] = useState('')
-  const [mockup, setMockup] = useState<{ fabricJson: object; previewUrl: string } | null>(null)
-
+"use client";
+import { ErrorMessage } from "@/components/platform/ErrorMessage";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { Header, Footer } from "@/components/platform/Shell";
+import { useLocale } from "@/components/platform/Locale";
+import { CarModel } from "@/components/platform/CarModel";
+import { type CarItem } from "@/components/platform/Inventory";
+import {
+  LogoConfigurator,
+  type SlotType,
+} from "@/components/canvas/LogoConfigurator";
+import { CheckoutForm } from "@/components/checkout/CheckoutForm";
+import { SLOT_NAMES } from "@/lib/slots";
+export default function Page() {
+  const { t } = useLocale();
+  const params = useParams<{ id: string }>();
+  const [car, setCar] = useState<CarItem | null>(null);
+  const [slotId, setSlotId] = useState("");
+  const [photo, setPhoto] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [interest, setInterest] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [mockup, setMockup] = useState<{
+    fabricJson: object;
+    previewUrl: string;
+  } | null>(null);
   useEffect(() => {
-    fetch(`/api/cars/${params.id}`).then(async response => {
-      const data = await response.json()
-      if (!response.ok) throw new Error(data.error || 'Не удалось загрузить авто.')
-      setCar(data.car)
-      setSlot(data.car.adSlots[0] ?? null)
-    }).catch(error => setMessage(error instanceof Error ? error.message : 'Ошибка загрузки.')).finally(() => setLoading(false))
-  }, [params.id])
-
-  if (loading) return <main className="grid min-h-screen place-items-center bg-[#080a07] text-zinc-300">Загружаем автомобиль…</main>
-  if (!car) return <main className="grid min-h-screen place-items-center bg-[#080a07] px-6 text-center text-zinc-300"><div><p>{message || 'Автомобиль не найден.'}</p><Link href="/catalog" className="mt-4 inline-block text-lime-300">Вернуться в каталог</Link></div></main>
-
-  return <main className="min-h-screen bg-[#080a07] px-5 py-6 text-white sm:px-8">
-    <div className="mx-auto max-w-7xl">
-      <header className="mb-8 flex items-center justify-between border-b border-white/10 pb-5"><Link href="/index.html"><Image src="/onroad-logo.svg" alt="ONROAD" width={160} height={31} /></Link><Link href="/catalog" className="inline-flex items-center gap-2 text-sm text-zinc-400 hover:text-white"><ArrowLeft size={16} /> К каталогу</Link></header>
-      <div className="grid gap-10 lg:grid-cols-[1.1fr_.9fr]">
-        <section>
-          <div className="mb-6"><p className="mb-2 text-xs uppercase tracking-[.2em] text-lime-300">Карточка автомобиля</p><h1 className="text-3xl font-bold sm:text-4xl">{car.make} {car.model}</h1><p className="mt-2 flex items-center gap-2 text-sm text-zinc-400">{car.year} · {car.color} <span>·</span><MapPin size={14} />{car.city}</p></div>
-          <div className="mb-6 overflow-hidden rounded-2xl border border-white/10 bg-white/[.03]">
-            {car.photoUrls[0] && <img src={car.photoUrls[0]} alt={`${car.make} ${car.model}`} className="aspect-[16/9] w-full object-cover" />}
-          </div>
-          <h2 className="mb-3 text-lg font-semibold">Предварительный макет</h2>
-          {slot && <LogoConfigurator carImageUrl={car.photoUrls[0] || '/public/car-sedan.jpg'} selectedSlot={slot.slotType} onChange={setMockup} />}
-          <p className="mt-3 text-xs leading-5 text-zinc-500">Это только визуальный черновик. Перед производством размер и расположение подтверждаются владельцем автомобиля и ONROAD.</p>
-        </section>
-        <section>
-          <div className="mb-5 rounded-2xl border border-white/10 bg-white/[.025] p-5">
-            <h2 className="mb-4 text-lg font-semibold">Доступные места</h2>
-            <div className="space-y-2">{car.adSlots.map(item => <button key={item.id} onClick={() => { setSlot(item); setMockup(null) }} className={`flex w-full items-center justify-between rounded-xl border p-4 text-left transition ${slot?.id === item.id ? 'border-lime-300/50 bg-lime-300/5' : 'border-white/10 hover:border-white/20'}`}><span><span className="block font-medium">{item.label}</span><span className="mt-1 block text-xs text-zinc-500">Можно отправить запрос на это место</span></span><span className="text-right text-sm font-semibold text-lime-200">{Number(item.priceMonthly).toLocaleString('ru-KZ')} ₸<small className="block text-xs font-normal text-zinc-500">ориентир / месяц</small></span></button>)}</div>
-            {car.adSlots.length === 0 && <p className="text-sm text-zinc-400">Свободных мест сейчас нет.</p>}
-          </div>
-          {slot && <CheckoutForm slotId={slot.id} slotLabel={slot.label} carName={`${car.make} ${car.model}`} priceWeekly={Number(slot.priceWeekly)} priceMonthly={Number(slot.priceMonthly)} mockupData={mockup?.fabricJson} mockupUrl={mockup?.previewUrl} />}
-        </section>
-      </div>
+    let live = true;
+    fetch(`/api/cars/${params.id}`)
+      .then(async (r) => {
+        const d = await r.json();
+        if (!r.ok) throw Error(d.error);
+        if (live) {
+          setCar(d.car);
+          setPhoto(d.car.photoUrls[0]);
+          setSlotId(
+            d.car.adSlots.find((s: CarItem["adSlots"][number]) => s.isAvailable)
+              ?.id || "",
+          );
+        }
+      })
+      .catch((e) => {
+        if (live) setError(e.message);
+      })
+      .finally(() => {
+        if (live) setLoading(false);
+      });
+    return () => {
+      live = false;
+    };
+  }, [params.id]);
+  async function shareInterest() {
+    setBusy(true);
+    try {
+      const r = await fetch(`/api/cars/${params.id}/interest`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ consent: true }),
+      });
+      const d = await r.json();
+      if (!r.ok) throw Error(d.error);
+      setInterest(true);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Error");
+    } finally {
+      setBusy(false);
+    }
+  }
+  const slot = car?.adSlots.find((s) => s.id === slotId);
+  const label = slot
+    ? SLOT_NAMES[slot.slotType]
+      ? t(...SLOT_NAMES[slot.slotType])
+      : slot.label
+    : "";
+  return (
+    <div className="platform light-site">
+      <Header />
+      <main className="section-wrap">
+        <Link className="text-button" href="/catalog">
+          {t("Все автомобили", "Барлық автомобильдер", "All cars")}
+        </Link>
+        {loading ? (
+          <p className="empty-state">
+            {t("Загрузка…", "Жүктелуде…", "Loading…")}
+          </p>
+        ) : !car ? (
+          <p className="empty-state">{<ErrorMessage message={error} />}</p>
+        ) : (
+          <>
+            <div className="dashboard-heading" style={{ marginTop: 30 }}>
+              <div>
+                <p className="eyebrow">ASTANA, KZ / {car.year}</p>
+                <h1>
+                  {car.make} {car.model}
+                </h1>
+              </div>
+              <span className="status-pill">
+                {t("Проверено ONROAD", "ONROAD тексерген", "ONROAD approved")}
+              </span>
+            </div>
+            <div className="detail-layout">
+              <section>
+                <img
+                  className="detail-photo"
+                  src={photo}
+                  alt={`${car.make} ${car.model}`}
+                />
+                <div className="detail-photos">
+                  {car.photoUrls.map((u) => (
+                    <button key={u} onClick={() => setPhoto(u)}>
+                      <img
+                        src={u}
+                        alt={t(
+                          "Фото автомобиля",
+                          "Автомобиль фотосы",
+                          "Vehicle photo",
+                        )}
+                      />
+                    </button>
+                  ))}
+                </div>
+                <CarModel
+                  src={car.modelUrl}
+                  hotspots={car.modelHotspots}
+                  photo={photo}
+                  selected={slot?.slotType}
+                  onSelect={(type) => {
+                    const s = car.adSlots.find(
+                      (s) => s.slotType === type && s.isAvailable,
+                    );
+                    if (s) {
+                      setSlotId(s.id);
+                      setMockup(null);
+                    }
+                  }}
+                />
+                {slot && (
+                  <details style={{ marginTop: 25 }}>
+                    <summary>
+                      {t(
+                        "Подготовить макет на фотографии",
+                        "Фотода макет дайындау",
+                        "Create a photo mockup",
+                      )}
+                    </summary>
+                    <div style={{ marginTop: 20 }}>
+                      <LogoConfigurator
+                        key={photo + slot.id}
+                        carImageUrl={photo}
+                        selectedSlot={slot.slotType as SlotType}
+                        onChange={setMockup}
+                      />
+                    </div>
+                    <p className="fine-print">
+                      {t(
+                        "Переместите логотип на нужное место. Это визуальный черновик, точные размеры согласуются отдельно.",
+                        "Логотипті қажетті орынға жылжытыңыз. Бұл визуалды жоба, нақты өлшемдер бөлек келісіледі.",
+                        "Move the logo to your desired location. This is a visual draft; exact measurements are agreed separately.",
+                      )}
+                    </p>
+                  </details>
+                )}
+              </section>
+              <section className="form-stack">
+                <h2>
+                  {t("Выберите место", "Орын таңдаңыз", "Choose a placement")}
+                </h2>
+                <div className="detail-zones">
+                  {car.adSlots.map((s) => (
+                    <button
+                      key={s.id}
+                      disabled={!s.isAvailable}
+                      aria-pressed={s.id === slotId}
+                      onClick={() => {
+                        setSlotId(s.id);
+                        setMockup(null);
+                      }}
+                    >
+                      <span>
+                        {SLOT_NAMES[s.slotType]
+                          ? t(...SLOT_NAMES[s.slotType])
+                          : s.label}
+                        <small>
+                          {s.isAvailable
+                            ? t(
+                                "Даты согласуются при запросе",
+                                "Күндер өтінімде келісіледі",
+                                "Dates confirmed on request",
+                              )
+                            : t("Недоступно", "Қолжетімсіз", "Unavailable")}
+                        </small>
+                      </span>
+                      <strong>
+                        {Number(s.priceMonthly).toLocaleString()} ₸
+                        <small>{t("за месяц", "айына", "per month")}</small>
+                      </strong>
+                    </button>
+                  ))}
+                </div>
+                {slot && (
+                  <CheckoutForm
+                    key={slot.id}
+                    slotId={slot.id}
+                    slotLabel={label}
+                    carName={`${car.make} ${car.model}`}
+                    priceMonthly={Number(slot.priceMonthly)}
+                    priceWeekly={Number(slot.priceWeekly)}
+                    mockupData={mockup?.fabricJson}
+                    mockupUrl={mockup?.previewUrl}
+                  />
+                )}
+                <div className="panel form-stack">
+                  <h3>
+                    {t(
+                      "Интересно вашей компании?",
+                      "Компанияңызға қызықты ма?",
+                      "Interested for your company?",
+                    )}
+                  </h3>
+                  <p className="fine-print">
+                    {t(
+                      "Нажимая кнопку, вы разрешаете показать владельцу название вашей компании и дату интереса. Контактный email публично не раскрывается.",
+                      "Батырманы басу арқылы иесіне компания атауы мен қызығушылық күнін көрсетуге рұқсат бересіз. Email жарияланбайды.",
+                      "By clicking, you allow the owner to see your company name and the date of interest. Your email is not made public.",
+                    )}
+                  </p>
+                  <button
+                    className="outline-button"
+                    disabled={interest || busy}
+                    onClick={shareInterest}
+                  >
+                    {interest
+                      ? t(
+                          "Интерес передан владельцу",
+                          "Қызығушылық иесіне жіберілді",
+                          "Interest shared with owner",
+                        )
+                      : t(
+                          "Сообщить об интересе",
+                          "Қызығушылықты білдіру",
+                          "Share my interest",
+                        )}
+                  </button>
+                </div>
+                {error && (
+                  <p className="form-error" role="alert">
+                    {<ErrorMessage message={error} />}
+                  </p>
+                )}
+              </section>
+            </div>
+          </>
+        )}
+      </main>
+      <Footer />
     </div>
-  </main>
+  );
 }

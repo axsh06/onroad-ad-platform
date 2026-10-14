@@ -1,28 +1,115 @@
-'use client'
-
-import { useEffect, useState } from 'react'
-import Link from 'next/link'
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent } from '@/components/ui/card'
-
-type Booking = { id: string; status: string; startDate: string; endDate: string; totalAmount: string | number; slot: { label: string; car: { make: string; model: string; city: string } }; campaign?: { brandName: string } | null }
-const statusLabels: Record<string, string> = { PENDING: 'На рассмотрении', CONFIRMED: 'Подтверждено', APPROVED: 'Макет согласован', ACTIVE: 'Активно', COMPLETED: 'Завершено', CANCELLED: 'Отменено' }
-
+"use client";
+import { ErrorMessage } from "@/components/platform/ErrorMessage";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useLocale } from "@/components/platform/Locale";
+import { Inventory } from "@/components/platform/Inventory";
+import { STATUS_NAMES } from "@/components/platform/Statuses";
+import { SLOT_NAMES } from "@/lib/slots";
+type Booking = {
+  id: string;
+  status: string;
+  startDate: string;
+  endDate: string;
+  totalAmount: string | number;
+  slot: {
+    slotType: string;
+    label: string;
+    car: { make: string; model: string; photoUrls: string[] };
+  };
+};
 export function BuyerDashboard() {
-  const [bookings, setBookings] = useState<Booking[]>([])
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(true)
+  const { t, locale } = useLocale();
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
   useEffect(() => {
-    fetch('/api/bookings?limit=50').then(async response => {
-      const data = await response.json()
-      if (!response.ok) throw new Error(data.error || 'Не удалось загрузить кампании.')
-      setBookings(data.bookings || [])
-    }).catch(err => setError(err instanceof Error ? err.message : 'Ошибка загрузки.')).finally(() => setLoading(false))
-  }, [])
-  return <div className="space-y-6">
-    <div className="flex flex-wrap items-end justify-between gap-4"><div><h1 className="text-2xl font-bold">Кабинет рекламодателя</h1><p className="mt-1 text-sm text-zinc-400">Запросы и бронирования автомобилей</p></div><Link href="/catalog" className="rounded-lg bg-lime-300 px-4 py-2.5 text-sm font-semibold text-black">Выбрать авто</Link></div>
-    {loading && <p className="text-sm text-zinc-400">Загружаем…</p>}{error && <p role="alert" className="rounded-lg bg-red-400/10 p-3 text-sm text-red-200">{error}</p>}
-    {!loading && !error && bookings.length === 0 && <Card><CardContent className="py-12 text-center"><p className="font-semibold">Пока нет кампаний</p><p className="mt-2 text-sm text-zinc-400">Выберите автомобиль в каталоге и отправьте запрос.</p></CardContent></Card>}
-    <div className="space-y-3">{bookings.map(booking => <Card key={booking.id}><CardContent className="flex flex-wrap items-center justify-between gap-4 pt-6"><div><div className="flex items-center gap-2"><strong>{booking.campaign?.brandName || 'Рекламная кампания'}</strong><Badge variant={booking.status === 'ACTIVE' ? 'default' : 'secondary'}>{statusLabels[booking.status] || booking.status}</Badge></div><p className="mt-1 text-sm text-zinc-400">{booking.slot.car.make} {booking.slot.car.model} · {booking.slot.label} · {booking.slot.car.city}</p><p className="mt-1 text-xs text-zinc-500">{new Date(booking.startDate).toLocaleDateString('ru-KZ')} — {new Date(booking.endDate).toLocaleDateString('ru-KZ')}</p></div><strong className="text-lime-200">{Number(booking.totalAmount).toLocaleString('ru-KZ')} ₸</strong></CardContent></Card>)}</div>
-  </div>
+    fetch("/api/bookings?limit=50")
+      .then(async (r) => {
+        if (!r.ok) throw Error();
+        return r.json();
+      })
+      .then((d) => setBookings(d.bookings))
+      .catch(() =>
+        setError(
+          t(
+            "Не удалось загрузить заявки. Обновите страницу.",
+            "Өтінімдер жүктелмеді. Бетті жаңартыңыз.",
+            "Could not load requests. Refresh the page.",
+          ),
+        ),
+      )
+      .finally(() => setLoading(false));
+  }, []);
+  return (
+    <div>
+      <div className="dashboard-heading">
+        <div>
+          <p className="eyebrow">
+            {t("КАБИНЕТ КОМПАНИИ", "КОМПАНИЯ КАБИНЕТІ", "COMPANY ACCOUNT")}
+          </p>
+          <h1>
+            {t(
+              "Ваш бренд в движении",
+              "Сіздің бренд қозғалыста",
+              "Your brand in motion",
+            )}
+          </h1>
+        </div>
+        <Link className="outline-button" href="/planner">
+          {t("Рассчитать кампанию", "Науқанды есептеу", "Plan a campaign")}
+        </Link>
+      </div>
+      <section>
+        <h2>{t("Мои запросы", "Менің өтінімдерім", "My requests")}</h2>
+        {error && (
+          <p className="form-error">{<ErrorMessage message={error} />}</p>
+        )}
+        {loading ? (
+          <p>{t("Загрузка…", "Жүктелуде…", "Loading…")}</p>
+        ) : !bookings.length ? (
+          <p className="empty-state">
+            {t(
+              "Выберите автомобиль ниже и отправьте запрос на размещение.",
+              "Төменнен автомобиль таңдап, орналастыру өтінімін жіберіңіз.",
+              "Choose a car below and request a placement.",
+            )}
+          </p>
+        ) : (
+          bookings.map((b) => (
+            <article className="panel booking-row" key={b.id}>
+              <div>
+                <h3>
+                  {b.slot.car.make} {b.slot.car.model}
+                </h3>
+                <p>
+                  {SLOT_NAMES[b.slot.slotType]
+                    ? t(...SLOT_NAMES[b.slot.slotType])
+                    : b.slot.label}{" "}
+                  · {new Date(b.startDate).toLocaleDateString(locale)} —{" "}
+                  {new Date(b.endDate).toLocaleDateString(locale)}
+                </p>
+              </div>
+              <strong>{Number(b.totalAmount).toLocaleString(locale)} ₸</strong>
+              <span className="status-pill">
+                {STATUS_NAMES[b.status]
+                  ? t(...STATUS_NAMES[b.status])
+                  : b.status}
+              </span>
+            </article>
+          ))
+        )}
+      </section>
+      <section style={{ marginTop: 60 }}>
+        <h2>
+          {t(
+            "Автомобили для вашей кампании",
+            "Науқаныңызға арналған автомобильдер",
+            "Cars for your campaign",
+          )}
+        </h2>
+        <Inventory />
+      </section>
+    </div>
+  );
 }
