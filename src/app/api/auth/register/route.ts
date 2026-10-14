@@ -5,6 +5,7 @@ import { emailReady } from "@/lib/email";
 import { issueCode, rateLimit } from "@/lib/verification";
 import { Role } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { PRIVACY_POLICY_VERSION } from "@/lib/legal-version";
 
 const RegisterSchema = z
   .object({
@@ -69,7 +70,7 @@ export async function POST(req: NextRequest) {
         phone: phone || null,
         companyName: companyName || null,
         privacyConsentAt: new Date(),
-        privacyConsentVersion: "2026-10-13",
+        privacyConsentVersion: PRIVACY_POLICY_VERSION,
         role: role as Role,
         passwordHash,
         ...(role === "SELLER" ? { sellerProfile: { create: {} } } : {}),
