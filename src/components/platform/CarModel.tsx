@@ -2,8 +2,14 @@
 import { createElement, useEffect, useRef, useState } from "react";
 import { useLocale } from "./Locale";
 import { PLACEMENT_TYPES, SLOT_NAMES } from "@/lib/slots";
+import {
+  BMW_M5_MODEL,
+  BMW_M5_HOTSPOTS,
+  BMW_M5_VIEWS,
+} from "@/lib/bmw-m5-model";
 export type Hotspots = Record<string, { position: string; normal: string }>;
 type ModelElement = HTMLElement & {
+  loaded?: boolean;
   positionAndNormalFromPoint: (
     x: number,
     y: number,
@@ -11,8 +17,6 @@ type ModelElement = HTMLElement & {
     position: { x: number; y: number; z: number };
     normal: { x: number; y: number; z: number };
   } | null;
-  getDimensions: () => { x: number; y: number; z: number };
-  getBoundingBoxCenter: () => { x: number; y: number; z: number };
 };
 export function CarModel({
   src,
@@ -21,6 +25,7 @@ export function CarModel({
   onSelect,
   onAnnotate,
   photo,
+  placements = PLACEMENT_TYPES,
 }: {
   src?: string | null;
   hotspots?: Hotspots | null;
@@ -28,6 +33,7 @@ export function CarModel({
   onSelect?: (s: string) => void;
   onAnnotate?: (s: string, p: Hotspots[string]) => void;
   photo?: string;
+  placements?: readonly string[];
 }) {
   const { t } = useLocale();
   const [motion, setMotion] = useState(false);
@@ -41,9 +47,9 @@ export function CarModel({
   const ref = useRef<ModelElement | null>(null);
   const pointerStart = useRef<{ x: number; y: number } | null>(null);
   const [ready, setReady] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
   const [active, setActive] = useState(Boolean(src));
-  const [defaults, setDefaults] = useState<Hotspots>({});
   useEffect(() => {
     if (!active) return;
     let live = true;
@@ -61,31 +67,25 @@ export function CarModel({
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+    setLoaded(false);
     const load = () => {
       setError(false);
-      if (src) return;
-      const d = el.getDimensions();
-      const c = el.getBoundingBoxCenter();
-      const p = (x: number, y: number, z: number, n: string) => ({
-        position: `${x}m ${y}m ${z}m`,
-        normal: n,
-      });
-      setDefaults({
-        LEFT_DOOR: p(c.x + d.x * 0.48, c.y, c.z, "1 0 0"),
-        RIGHT_DOOR: p(c.x - d.x * 0.48, c.y, c.z, "-1 0 0"),
-        HOOD: p(c.x, c.y - d.y * 0.1, c.z + d.z * 0.3, "0 1 0"),
-        REAR_BODY: p(c.x, c.y - d.y * 0.08, c.z - d.z * 0.48, "0 0 -1"),
-      });
+      setLoaded(true);
     };
     const fail = () => setError(true);
     el.addEventListener("load", load);
     el.addEventListener("error", fail);
+    if (el.loaded) load();
     return () => {
       el.removeEventListener("load", load);
       el.removeEventListener("error", fail);
     };
   }, [ready, src, active]);
-  const points = src ? hotspots || {} : defaults;
+  const points: Hotspots = src ? hotspots || {} : BMW_M5_HOTSPOTS;
+  const choose = (key: string) => {
+    setActive(true);
+    onSelect?.(key);
+  };
   const pick = (event: React.MouseEvent) => {
     if (!onAnnotate || !selected || !ref.current) return;
     const start = pointerStart.current;
@@ -134,25 +134,28 @@ export function CarModel({
             "model-viewer",
             {
               ref,
-              src: src || "/models/concept-car.glb",
-              alt: t(
-                "3D-модель автомобиля",
-                "Автомобильдің 3D моделі",
-                "3D car model",
-              ),
+              src: src || BMW_M5_MODEL,
+              alt: src
+                ? t(
+                    "3D-модель автомобиля",
+                    "Автомобильдің 3D моделі",
+                    "3D car model",
+                  )
+                : "BMW M5 F90 · 2018 · 3D",
               "camera-controls": true,
-              "auto-rotate": motion && !onAnnotate,
-              "rotation-per-second": "12deg",
+              "interpolation-decay": motion ? 80 : 0,
+              "interaction-prompt": "none",
               "shadow-intensity": "1",
               "environment-image": "neutral",
-              "camera-orbit":
-                (selected === "LEFT_DOOR"
-                  ? "90deg"
-                  : selected === "RIGHT_DOOR"
-                    ? "-90deg"
-                    : selected === "REAR_BODY"
-                      ? "180deg"
-                      : "25deg") + " 75deg 85%",
+              "camera-orbit": !src
+                ? BMW_M5_VIEWS[selected || "LEFT_DOOR"] || BMW_M5_VIEWS.LEFT_DOOR
+                : (selected === "LEFT_DOOR"
+                    ? "90deg"
+                    : selected === "RIGHT_DOOR"
+                      ? "-90deg"
+                      : selected === "REAR_BODY"
+                        ? "180deg"
+                        : "25deg") + " 75deg 85%",
               "touch-action": "pan-y",
               onPointerDown: (event: React.PointerEvent) => {
                 pointerStart.current = { x: event.clientX, y: event.clientY };
@@ -160,42 +163,47 @@ export function CarModel({
               onClick: pick,
               style: { width: "100%", height: "100%" },
             },
-            Object.entries(points).map(([key, p]) =>
-              createElement(
-                "button",
-                {
-                  key,
-                  slot: `hotspot-${key}`,
-                  "data-position": p.position,
-                  "data-normal": p.normal,
-                  "data-visibility-attribute": "visible",
-                  className: `model-hotspot ${selected === key ? "selected" : ""}`,
-                  onClick: (e: React.MouseEvent) => {
-                    e.stopPropagation();
-                    onSelect?.(key);
+            Object.entries(points)
+              .filter(([key]) => placements.includes(key))
+              .map(([key, p]) =>
+                createElement(
+                  "button",
+                  {
+                    key,
+                    slot: `hotspot-${key}`,
+                    "data-position": p.position,
+                    "data-normal": p.normal,
+                    "data-visibility-attribute": "visible",
+                    className: `model-hotspot ${selected === key ? "selected" : ""}`,
+                    onClick: (e: React.MouseEvent) => {
+                      e.stopPropagation();
+                      choose(key);
+                    },
+                    "aria-label": SLOT_NAMES[key] ? t(...SLOT_NAMES[key]) : key,
+                    "aria-pressed": selected === key,
+                    title: SLOT_NAMES[key] ? t(...SLOT_NAMES[key]) : key,
                   },
-                  "aria-label": SLOT_NAMES[key] ? t(...SLOT_NAMES[key]) : key,
-                },
-                String(
-                  PLACEMENT_TYPES.indexOf(
-                    key as (typeof PLACEMENT_TYPES)[number],
-                  ) + 1,
-                ).padStart(2, "0"),
+                  String(placements.indexOf(key) + 1).padStart(2, "0"),
+                ),
               ),
-            ),
           )
         ) : (
           <p className="empty-state">
             {t("Загрузка 3D…", "3D жүктелуде…", "Loading 3D…")}
           </p>
         )}
+        {active && ready && !loaded && !error && (
+          <p className="model-loading" role="status">
+            {t("Загрузка 3D…", "3D жүктелуде…", "Loading 3D…")}
+          </p>
+        )}
       </div>
       <div className="model-zone-list">
-        {PLACEMENT_TYPES.map((key, i) => (
+        {placements.map((key, i) => (
           <button
             key={key}
             aria-pressed={selected === key}
-            onClick={() => onSelect?.(key)}
+            onClick={() => choose(key)}
           >
             <span>0{i + 1}</span>
             {t(...SLOT_NAMES[key])}
@@ -210,18 +218,28 @@ export function CarModel({
               "Vehicle model. Final decal dimensions are approved before installation.",
             )
           : t(
-              "Демонстрационная 3D-модель. Для автомобиля владельца администратор загружает отдельную модель.",
-              "Демонстрациялық 3D модель. Иесінің көлігі үшін әкімші жеке модель жүктейді.",
-              "Demo 3D model. An administrator uploads a separate model for each owner’s vehicle.",
+              "Демонстрационная BMW M5 F90, 2018. Вращайте модель мышью или пальцем. Выберите зону, чтобы изменить ракурс.",
+              "Демонстрациялық BMW M5 F90, 2018. Модельді тінтуірмен немесе саусақпен айналдырыңыз. Көріністі өзгерту үшін аймақты таңдаңыз.",
+              "Demo BMW M5 F90, 2018. Drag to rotate. Select a placement to change the view.",
             )}{" "}
         {!src && (
-          <a
-            href="https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/CarConcept"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Car Concept · Eric Chadwick / DGG · CC BY 4.0
-          </a>
+          <span className="model-attribution">
+            <a
+              href="https://sketchfab.com/3d-models/2018-bmw-m5-f90-7e76fd2d8b6d4d29b3da2b87936f826d"
+              target="_blank"
+              rel="noreferrer"
+            >
+              2018 BMW M5 (F90) · OUTPISTON
+            </a>
+            {" · "}
+            <a
+              href="https://creativecommons.org/licenses/by-nc-sa/4.0/"
+              target="_blank"
+              rel="noreferrer"
+            >
+              CC BY-NC-SA 4.0
+            </a>
+          </span>
         )}
       </p>
     </div>

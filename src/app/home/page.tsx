@@ -5,6 +5,7 @@ import { Header, Footer } from "@/components/platform/Shell";
 import { useLocale } from "@/components/platform/Locale";
 import { Inventory } from "@/components/platform/Inventory";
 import { CarModel } from "@/components/platform/CarModel";
+import { BMW_M5_PLACEMENTS } from "@/lib/bmw-m5-model";
 const faqs: [string, string, string, string, string, string][] = [
   [
     "Как автомобиль попадает в каталог?",
@@ -266,7 +267,7 @@ export default function HomePage() {
           </div>
           <Inventory limit={3} />
         </section>
-        <section className="placement-section reveal">
+        <section className="placement-section reveal" id="placements">
           <div className="section-wrap placement-grid">
             <div>
               <p className="eyebrow">
@@ -281,9 +282,9 @@ export default function HomePage() {
               </h2>
               <p>
                 {t(
-                  "Две боковые двери, капот и задняя часть кузова. Вращайте модель и выбирайте зону.",
-                  "Екі бүйір есік, капот және кузовтың артқы бөлігі. Модельді айналдырып, аймақты таңдаңыз.",
-                  "Two side doors, the hood and the rear body panel. Rotate the model and choose a placement.",
+                  "BMW M5: две передние двери, капот и заднее стекло. Вращайте модель и выбирайте зону.",
+                  "BMW M5: екі алдыңғы есік, капот және артқы әйнек. Модельді айналдырып, аймақты таңдаңыз.",
+                  "BMW M5: two front doors, the hood and the rear window. Rotate the model and choose a placement.",
                 )}
               </p>
               <Link href="/planner" className="solid-button">
@@ -294,7 +295,22 @@ export default function HomePage() {
                 )}
               </Link>
             </div>
-            <CarModel selected={zone} onSelect={setZone} />
+            <div>
+              <CarModel
+                selected={zone}
+                onSelect={setZone}
+                placements={BMW_M5_PLACEMENTS}
+              />
+              {zone === "REAR_WINDOW" && (
+                <p className="fine-print">
+                  {t(
+                    "Размещение на заднем стекле согласуется отдельно после проверки обзорности и требований безопасности.",
+                    "Артқы әйнектегі жарнама көріну мен қауіпсіздік талаптары тексерілгеннен кейін бөлек келісіледі.",
+                    "Rear-window placement requires separate approval after a visibility and safety review.",
+                  )}
+                </p>
+              )}
+            </div>
           </div>
         </section>
         <section className="movement-section reveal" id="for-brands">

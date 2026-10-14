@@ -462,7 +462,21 @@
   background: #fff;
   color: #171c19;
   font-size: 10px;
-  --min-hotspot-opacity: 0.2;
+  --min-hotspot-opacity: 0;
+}
+.model-hotspot:not([data-visible]) {
+  pointer-events: none;
+}
+.model-loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  background: #e5e9e2;
+  color: var(--muted);
+  font-size: 13px;
+  pointer-events: none;
 }
 .model-hotspot.selected {
   background: #171c19;
@@ -500,8 +514,11 @@
   margin: 15px 0 !important;
 }
 .model-note a {
-  display: block;
   text-decoration: underline;
+}
+.model-attribution {
+  display: block;
+  margin-top: 5px;
 }
 .movement-section {
   display: grid;
